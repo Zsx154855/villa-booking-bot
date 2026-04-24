@@ -66,8 +66,18 @@ def main():
     app.add_handler(CommandHandler("book", book))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
+    # Render 使用 PORT 环境变量
+    port = int(os.environ.get('PORT', 8443))
+    
     logger.info("🤖 Bot 启动...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    
+    # 使用 webhook 模式（适合 Render）
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=port,
+        url_path=TOKEN,
+        webhook_url=f"https://villa-booking-bot.onrender.com/{TOKEN}"
+    )
 
 if __name__ == '__main__':
     main()
