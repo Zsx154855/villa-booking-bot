@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Taimili Villa Booking Telegram Bot"""
+"""Taimili Villa Booking Telegram Bot - Koyeb Ready"""
 
 import os
 import logging
@@ -12,10 +12,9 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-PORT = int(os.environ.get('PORT', 10000))
+TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '6789145161:AAGk0esn72A4kim6l4LcJqW17c9lqibwZhc')
+PORT = int(os.environ.get('PORT', 8080))
 
-# 简单的HTTP处理器（用于Render健康检查）
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -25,7 +24,7 @@ class HealthHandler(BaseHTTPRequestHandler):
         self.wfile.write(response.encode())
     
     def log_message(self, format, *args):
-        pass  # 静默日志
+        pass
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -71,17 +70,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"收到：{msg}\n\n客服会尽快回复您！")
 
 def run_http_server():
-    """运行HTTP服务器"""
     server = HTTPServer(('0.0.0.0', PORT), HealthHandler)
     logger.info(f"HTTP服务器启动在端口 {PORT}")
     server.serve_forever()
 
 def main():
-    if not TOKEN:
-        logger.error("未设置 TELEGRAM_BOT_TOKEN")
-        return
-    
-    # 在后台线程启动HTTP服务器
+    # 启动HTTP服务器（后台线程）
     http_thread = threading.Thread(target=run_http_server, daemon=True)
     http_thread.start()
     
