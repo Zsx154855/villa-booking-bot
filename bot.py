@@ -1,20 +1,31 @@
 #!/usr/bin/env python3
-"""Taimili Villa Booking Telegram Bot - Flask Web Service"""
+"""Taimili Villa Booking Telegram Bot"""
 
 import os
 import logging
+import asyncio
 import threading
-from flask import Flask, jsonify
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-
-# Flask app
-app = Flask(__name__)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+PORT = int(os.environ.get('PORT', 10000))
+
+# 简单的HTTP处理器（用于Render健康检查）
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        response = '{"status": "ok", "bot": "Taimili Villa Booking Bot"}'
+        self.wfile.write(response.encode())
+    
+    def log_message(self, format, *args):
+        pass  # 静默日志
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -59,12 +70,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"收到消息: {msg}")
     await update.message.reply_text(f"收到：{msg}\n\n客服会尽快回复您！")
 
-def run_bot():
-    """在后台运行 Telegram Bot"""
+def run_http_server():
+    """运行HTTP服务器"""
+    server = HTTPServer(('0.0.0.0', PORT), HealthHandler)
+    logger.info(f"HTTP服务器启动在端口 {PORT}")
+    server.serve_forever()
+
+def main():
     if not TOKEN:
         logger.error("未设置 TELEGRAM_BOT_TOKEN")
         return
     
+    # 在后台线程启动HTTP服务器
+    http_thread = threading.Thread(target=run_http_server, daemon=True)
+    http_thread.start()
+    
+    # 启动Bot
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_cmd))
@@ -73,25 +94,7 @@ def run_bot():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
     logger.info("🤖 Bot 启动...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False)
-
-# Flask routes
-@app.route('/')
-def index():
-    return jsonify({
-        'status': 'running',
-        'bot': 'Taimili Villa Booking Bot',
-        'commands': ['/start', '/help', '/info', '/book']
-    })
-
-@app.route('/health')
-def health():
-    return jsonify({'status': 'healthy'})
-
-# Start bot in background thread
-bot_thread = threading.Thread(target=run_bot, daemon=True)
-bot_thread.start()
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    main()
