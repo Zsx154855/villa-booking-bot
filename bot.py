@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Taimili Villa Booking Telegram Bot"""
+"""Taimili Villa Booking Telegram Bot - Flask Web Service"""
 
 import os
 import logging
+import threading
+from flask import Flask, jsonify
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+
+# Flask app
+app = Flask(__name__)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,30 +59,39 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"收到消息: {msg}")
     await update.message.reply_text(f"收到：{msg}\n\n客服会尽快回复您！")
 
-def main():
+def run_bot():
+    """在后台运行 Telegram Bot"""
     if not TOKEN:
         logger.error("未设置 TELEGRAM_BOT_TOKEN")
         return
     
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_cmd))
-    app.add_handler(CommandHandler("info", info))
-    app.add_handler(CommandHandler("book", book))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    
-    # Render 使用 PORT 环境变量
-    port = int(os.environ.get('PORT', 8443))
+    application = Application.builder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_cmd))
+    application.add_handler(CommandHandler("info", info))
+    application.add_handler(CommandHandler("book", book))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
     logger.info("🤖 Bot 启动...")
-    
-    # 使用 webhook 模式（适合 Render）
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=port,
-        url_path=TOKEN,
-        webhook_url=f"https://villa-booking-bot.onrender.com/{TOKEN}"
-    )
+    application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False)
+
+# Flask routes
+@app.route('/')
+def index():
+    return jsonify({
+        'status': 'running',
+        'bot': 'Taimili Villa Booking Bot',
+        'commands': ['/start', '/help', '/info', '/book']
+    })
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy'})
+
+# Start bot in background thread
+bot_thread = threading.Thread(target=run_bot, daemon=True)
+bot_thread.start()
 
 if __name__ == '__main__':
-    main()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
