@@ -12,7 +12,9 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '6789145161:AAGk0esn72A4kim6l4LcJqW17c9lqibwZhc')
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+if not TOKEN:
+    raise RuntimeError("Missing required environment variable: TELEGRAM_BOT_TOKEN")
 PORT = int(os.environ.get('PORT', 8080))
 
 class HealthHandler(BaseHTTPRequestHandler):
