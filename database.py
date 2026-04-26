@@ -102,9 +102,11 @@ def get_sqlite_connection():
 def get_connection():
     """统一获取数据库连接 - 根据配置自动选择 PostgreSQL 或 SQLite"""
     if db_config.is_postgresql:
-        yield from get_pg_connection()
+        with get_pg_connection() as conn:
+            yield conn
     else:
-        yield from get_sqlite_connection()
+        with get_sqlite_connection() as conn:
+            yield conn
 
 # ============ 参数占位符适配 ============
 def _get_param_placeholder(idx: int, db_type: str = None) -> str:
@@ -239,15 +241,15 @@ def update_villa(villa_id: str, updates: Dict) -> bool:
         for key, value in updates.items():
             if key in ['amenities', 'images']:
                 value = json.dumps(value, ensure_ascii=False)
-            set_clauses.append(f"{key} = %s")
+            set_clauses.append(f"{key} = ?")
             params.append(value)
         
-        set_clauses.append("updated_at = %s")
+        set_clauses.append("updated_at = ?")
         params.append(datetime.now().isoformat())
         
         params.append(villa_id)
         
-        sql = f"UPDATE villas SET {', '.join(set_clauses)} WHERE id = %s"
+        sql = f"UPDATE villas SET {', '.join(set_clauses)} WHERE id = ?"
         
         with get_connection() as conn:
             conn.execute(sql, tuple(params))
@@ -268,7 +270,7 @@ def create_booking(booking: Dict) -> bool:
                 "contact_name", "contact_phone", "contact_note",
                 "price_per_night", "total_price", "status"
             ]
-            values_placeholders = ", ".join(['%s' for _ in range(len(columns))])
+            values_placeholders = ", ".join(['?' for _ in range(len(columns))])
             
             conn.execute(f"""
                 INSERT INTO bookings (
@@ -300,7 +302,7 @@ def get_booking(booking_id: str) -> Optional[Dict]:
     """根据预订ID获取预订信息"""
     with get_connection() as conn:
         cursor = conn.execute(
-            "SELECT * FROM bookings WHERE booking_id = %s",
+            "SELECT * FROM bookings WHERE booking_id = ?",
             (booking_id,)
         )
         row = cursor.fetchone()
@@ -310,7 +312,7 @@ def get_user_bookings(user_id: str) -> List[Dict]:
     """获取用户的所有预订记录"""
     with get_connection() as conn:
         cursor = conn.execute(
-            "SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC",
+            "SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC",
             (str(user_id),)
         )
         rows = cursor.fetchall()
@@ -318,11 +320,11 @@ def get_user_bookings(user_id: str) -> List[Dict]:
 
 def get_villa_bookings(villa_id: str, status: Optional[str] = None) -> List[Dict]:
     """获取别墅的所有预订记录"""
-    sql = "SELECT * FROM bookings WHERE villa_id = %s"
+    sql = "SELECT * FROM bookings WHERE villa_id = ?"
     params = [villa_id]
     
     if status:
-        sql += " AND status = %s"
+        sql += " AND status = ?"
         params.append(status)
     
     sql += " ORDER BY checkin"
@@ -337,7 +339,7 @@ def update_booking_status(booking_id: str, status: str) -> bool:
     try:
         with get_connection() as conn:
             conn.execute(
-                "UPDATE bookings SET status = %s, updated_at = %s WHERE booking_id = %s",
+                "UPDATE bookings SET status = ?, updated_at = ? WHERE booking_id = ?",
                 (status, datetime.now().isoformat(), booking_id)
             )
             logger.info(f"✅ 预订状态更新: {booking_id} -> {status}")
@@ -358,15 +360,15 @@ def check_availability(villa_id: str, checkin: str, checkout: str,
     """
     sql = """
         SELECT COUNT(*) as count FROM bookings
-        WHERE villa_id = %s
+        WHERE villa_id = ?
         AND status NOT IN ('cancelled', 'rejected')
-        AND checkin < %s
-        AND checkout > %s
+        AND checkin < ?
+        AND checkout > ?
     """
     params = [villa_id, checkout, checkin]
     
     if exclude_booking_id:
-        sql += " AND booking_id != %s"
+        sql += " AND booking_id != ?"
         params.append(exclude_booking_id)
     
     with get_connection() as conn:
@@ -393,25 +395,25 @@ def get_or_create_user(telegram_id: str, username: str = None) -> Dict:
     """获取或创建用户记录"""
     with get_connection() as conn:
         cursor = conn.execute(
-            "SELECT * FROM users WHERE telegram_id = %s",
+            "SELECT * FROM users WHERE telegram_id = ?",
             (str(telegram_id),)
         )
         row = cursor.fetchone()
         
         if row:
             conn.execute(
-                "UPDATE users SET last_seen = %s WHERE telegram_id = %s",
+                "UPDATE users SET last_seen = ? WHERE telegram_id = ?",
                 (datetime.now().isoformat(), str(telegram_id))
             )
             return _row_to_dict(row, cursor.description)
         
         conn.execute("""
             INSERT INTO users (telegram_id, username)
-            VALUES (%s, %s)
+            VALUES (?, ?)
         """, (str(telegram_id), username))
         
         cursor = conn.execute(
-            "SELECT * FROM users WHERE telegram_id = %s",
+            "SELECT * FROM users WHERE telegram_id = ?",
             (str(telegram_id),)
         )
         row = cursor.fetchone()
@@ -422,7 +424,7 @@ def update_user_language(telegram_id: str, language: str) -> bool:
     try:
         with get_connection() as conn:
             conn.execute(
-                "UPDATE users SET preferred_language = %s WHERE telegram_id = %s",
+                "UPDATE users SET preferred_language = ? WHERE telegram_id = ?",
                 (language, str(telegram_id))
             )
             return True
@@ -446,7 +448,7 @@ def get_booking_stats() -> Dict:
         
         today = datetime.now().strftime('%Y-%m-%d')
         cursor = conn.execute(
-            "SELECT COUNT(*) as count FROM bookings WHERE DATE(created_at) = %s",
+            "SELECT COUNT(*) as count FROM bookings WHERE DATE(created_at) = ?",
             (today,)
         )
         today_new = cursor.fetchone()[0]
@@ -476,13 +478,13 @@ def get_villa_occupancy(villa_id: str, year: int = None, month: int = None) -> D
         
         cursor = conn.execute("""
             SELECT SUM(
-                LEAST(DATE(checkout), %s) - GREATEST(DATE(checkin), %s)
+                LEAST(DATE(checkout), ?) - GREATEST(DATE(checkin), ?)
             ) as booked_days
             FROM bookings
-            WHERE villa_id = %s
+            WHERE villa_id = ?
             AND status IN ('confirmed', 'completed')
-            AND checkin < %s
-            AND checkout > %s
+            AND checkin < ?
+            AND checkout > ?
         """, (end_date, start_date, villa_id, end_date, start_date))
         
         row = cursor.fetchone()
