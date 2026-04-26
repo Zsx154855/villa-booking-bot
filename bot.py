@@ -1171,12 +1171,18 @@ def main():
     # 按钮回调处理器
     application.add_handler(CallbackQueryHandler(button_callback))
     
-    # 直接预订别墅回调（需要特殊处理）
-    application.add_handler(CallbackQueryHandler(
-        lambda u, c: book_select_villa(u, c) if u.callback_query.data.startswith("select_villa_") 
-        else (book_confirm(u, c) if u.callback_query.data.startswith("confirm_") else None),
-        pass_update_to_callback=True
-    ))
+    # 直接预订别墅回调
+    async def handle_booking_callback(update, context):
+        """处理预订相关的回调"""
+        query = update.callback_query
+        await query.answer()
+        data = query.data
+        if data.startswith("select_villa_"):
+            await book_select_villa(update, context)
+        elif data.startswith("confirm_"):
+            await book_confirm(update, context)
+    
+    application.add_handler(CallbackQueryHandler(handle_booking_callback, pattern="^(select_villa_|confirm_)"))
     
     # ============ 新功能处理器 (v4.0) ============
     # 用户画像 - /profile
