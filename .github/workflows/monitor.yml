@@ -1,0 +1,120 @@
+name: Service Health Monitor
+
+on:
+  schedule:
+    # 每 10 分钟检查一次服务健康状态
+    - cron: '*/10 * * * *'
+  
+  # 也支持手动触发
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '运行模式'
+        required: true
+        default: 'health-check'
+        type: choice
+        options:
+          - health-check
+          - keep-awake
+          - test-notify
+
+  # 代码推送时触发
+  push:
+    branches:
+      - main
+
+env:
+  HEALTH_CHECK_URL: https://taimili-villa-bot.onrender.com/health
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_NOTIFY_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_NOTIFY_CHAT_ID }}
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests psutil
+      
+      - name: Run health check
+        id: health-check
+        run: |
+          python monitoring/monitor_runner.py --url ${{ env.HEALTH_CHECK_URL }} --timeout 30 || true
+      
+      - name: Send alert on failure
+        if: failure()
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_NOTIFY_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_NOTIFY_CHAT_ID }}",
+              "text": "🚨 Taimili Bot 健康检查失败！\n\n时间: '"$(date -u +'%Y-%m-%d %H:%M:%S')"' UTC\n\n请检查 Render 服务状态。",
+              "parse_mode": "Markdown"
+            }' || echo "Telegram notification failed"
+
+  keep-awake:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.mode == 'keep-awake' || github.event_name == 'schedule'
+    
+    steps:
+      - name: Ping Render service
+        run: |
+          echo "🏓 发送唤醒请求..."
+          RESPONSE=$(curl -s -w "\n%{http_code}\n%{time_total}" \
+            --max-time 30 \
+            --connect-timeout 10 \
+            "${{ env.HEALTH_CHECK_URL }}")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          TIME_TOTAL=$(echo "$RESPONSE" | tail -2 | head -1)
+          
+          echo "📊 HTTP 状态码: $HTTP_CODE"
+          echo "⏱️ 响应时间: $TIME_TOTAL 秒"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ 服务正常"
+          else
+            echo "⚠️ 服务可能需要唤醒"
+            echo "   (Render Free 版冷启动需要 30-50 秒)"
+          fi
+
+  test-notify:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.mode == 'test-notify'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests
+      
+      - name: Send test notifications
+        run: |
+          python monitoring/monitor_runner.py --test-notify
+
+  deploy-status:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Report deploy status
+        run: |
+          echo "📦 代码已推送到 main 分支"
+          echo "🔄 Render 将自动部署新版本"
+          echo "⏱️ 部署通常需要 2-3 分钟"
