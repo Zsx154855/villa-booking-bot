@@ -1184,6 +1184,72 @@ def main():
     
     application.add_handler(CallbackQueryHandler(handle_booking_callback, pattern="^(select_villa_|confirm_)"))
     
+    # ============ 命令型Callback路由器 ============
+    async def handle_cmd_callback(update, context):
+        """处理cmd_xxx格式的callback，模拟命令执行"""
+        query = update.callback_query
+        await query.answer()
+        data = query.data
+        
+        # 路由到对应的命令处理函数
+        if data == "cmd_mybookings":
+            await mybookings_cmd(update, context)
+        elif data == "cmd_coupons":
+            await coupons_cmd(update, context)
+        elif data == "cmd_book":
+            await start(update, context)  # 跳转到主菜单选择预订
+        elif data == "cmd_claim_coupon":
+            # TODO: 实现领取优惠券逻辑
+            await query.edit_message_text("🎁 优惠券领取功能开发中，敬请期待！")
+        elif data == "cmd_contact":
+            await query.edit_message_text(
+                "📞 *联系客服*\n\n"
+                "📧 邮箱：support@taimili.com\n"
+                "📱 微信：TaimiliVilla\n"
+                "⏰ 工作时间：9:00-21:00 (GMT+7)\n\n"
+                "我们会在24小时内回复您！",
+                parse_mode='Markdown'
+            )
+        elif data == "cmd_faq":
+            await faq_cmd(update, context)
+        elif data == "cmd_help":
+            await help_cmd(update, context)
+        elif data == "cmd_points_history":
+            await query.edit_message_text("📜 积分记录功能开发中，敬请期待！")
+    
+    application.add_handler(CallbackQueryHandler(handle_cmd_callback, pattern="^cmd_"))
+    
+    # ============ 取消预订处理器 ============
+    async def handle_cancel_booking(update, context):
+        """处理取消预订"""
+        query = update.callback_query
+        await query.answer()
+        data = query.data  # cancel_booking_XXX
+        
+        booking_id = data.replace("cancel_booking_", "")
+        
+        # 调用数据库取消
+        success = database.cancel_booking(booking_id)
+        
+        if success:
+            await query.edit_message_text(
+                f"✅ 预订 {booking_id} 已取消\n\n"
+                "如需重新预订，请发送 /start",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("🏠 返回主菜单", callback_data="main_menu")
+                ]])
+            )
+        else:
+            await query.edit_message_text(
+                f"❌ 取消失败，预订可能已被处理\n\n"
+                "请联系客服处理",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("📞 联系客服", callback_data="cmd_contact")
+                ]])
+            )
+    
+    application.add_handler(CallbackQueryHandler(handle_cancel_booking, pattern="^cancel_booking_"))
+    
     # ============ 新功能处理器 (v4.0) ============
     # 用户画像 - /profile
     application.add_handler(CommandHandler("profile", profile_cmd))
