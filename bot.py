@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Taimili Villa Booking Telegram Bot - Full Featured Version"""
+"""Taimili Villa Booking Telegram Bot v4.0 - SQLite Database Version"""
 
 import os
 import json
@@ -13,6 +13,20 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler,
     ConversationHandler, ContextTypes, filters
+)
+
+# 导入数据库模块
+import database
+
+# 导入handlers模块
+from handlers import (
+    profile_cmd, register_profile_handlers,
+    mybookings_cmd, mybookings_detail_cmd, register_mybookings_handlers,
+    coupons_cmd, register_coupons_handlers,
+    points_cmd, register_points_handlers,
+    redeem_cmd, register_redeem_handlers,
+    review_cmd, review_submit_cmd, register_review_handlers,
+    help_cmd, faq_cmd, register_help_handlers
 )
 
 # 配置日志
@@ -30,10 +44,6 @@ if not TOKEN:
 PORT = int(os.environ.get('PORT', 8080))
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ============ 数据文件路径 ============
-VILLAS_FILE = os.path.join(DATA_DIR, "villas.json")
-BOOKINGS_FILE = os.path.join(DATA_DIR, "bookings.json")
-
 # ============ 预订状态 ============
 (
     SELECT_REGION, SELECT_CHECKIN, SELECT_CHECKOUT, 
@@ -45,41 +55,70 @@ BOOKINGS_FILE = os.path.join(DATA_DIR, "bookings.json")
 REGIONS = ["芭提雅", "曼谷", "普吉岛"]
 REGION_EMOJI = {"芭提雅": "🏖️", "曼谷": "🏙️", "普吉岛": "🏝️"}
 
+# ============ 数据库初始化 ============
+def init_database():
+    """初始化数据库"""
+    try:
+        database.init_db()
+        logger.info("✅ 数据库初始化成功")
+        
+        # 检查是否有数据
+        villas = database.get_all_villas()
+        if not villas:
+            logger.warning("⚠️ 数据库中没有别墅数据，请运行 migrate.py 迁移数据")
+        else:
+            logger.info(f"📊 数据库中有 {len(villas)} 套别墅")
+            
+    except Exception as e:
+        logger.error(f"❌ 数据库初始化失败: {e}")
+
 # ============ 辅助函数 ============
 def load_villas():
-    """加载别墅数据"""
+    """加载别墅数据（兼容旧接口）"""
     try:
-        with open(VILLAS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        return database.get_all_villas()
     except Exception as e:
         logger.error(f"加载别墅数据失败: {e}")
         return []
 
 def save_booking(booking):
     """保存预订记录"""
-    try:
-        bookings = load_bookings()
-        bookings.append(booking)
-        with open(BOOKINGS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(bookings, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception as e:
-        logger.error(f"保存预订失败: {e}")
-        return False
+    # 转换格式以匹配新数据库结构
+    booking_data = {
+        'id': booking.get('id'),
+        'user_id': str(booking.get('user_id')),
+        'villa_id': booking.get('villa_id'),
+        'villa_name': booking.get('villa_name'),
+        'villa_region': booking.get('villa_region'),
+        'checkin': booking.get('checkin'),
+        'checkout': booking.get('checkout'),
+        'guests': booking.get('guests', 1),
+        'contact_name': booking.get('contact_name'),
+        'contact_phone': booking.get('contact_phone'),
+        'contact_note': booking.get('contact_note', ''),
+        'price_per_night': booking.get('price_per_night', 0),
+        'total_price': booking.get('total_price', 0),
+        'status': booking.get('status', 'pending')
+    }
+    return database.create_booking(booking_data)
 
 def load_bookings():
-    """加载预订记录"""
+    """加载预订记录（兼容旧接口）"""
     try:
-        with open(BOOKINGS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        # 返回所有预订记录（用于全局查询）
+        # 注意：这个函数在原代码中是全局加载，新版本需要优化
+        return []
     except Exception as e:
         logger.error(f"加载预订记录失败: {e}")
         return []
 
 def get_user_bookings(user_id):
     """获取用户的预订记录"""
-    bookings = load_bookings()
-    return [b for b in bookings if str(b.get('user_id')) == str(user_id)]
+    try:
+        return database.get_user_bookings(str(user_id))
+    except Exception as e:
+        logger.error(f"获取用户预订失败: {e}")
+        return []
 
 def format_price(price):
     """格式化价格"""
@@ -96,32 +135,7 @@ def calculate_nights(checkin, checkout):
 
 def is_date_available(villa_id, checkin, checkout, exclude_booking_id=None):
     """检查别墅在指定日期是否可用"""
-    bookings = load_bookings()
-    try:
-        checkin_date = datetime.strptime(checkin, "%Y-%m-%d")
-        checkout_date = datetime.strptime(checkout, "%Y-%m-%d")
-    except:
-        return False
-    
-    for booking in bookings:
-        if exclude_booking_id and booking.get('id') == exclude_booking_id:
-            continue
-        if booking.get('villa_id') != villa_id:
-            continue
-        if booking.get('status') in ['cancelled', 'rejected']:
-            continue
-        
-        try:
-            booking_checkin = datetime.strptime(booking['checkin'], "%Y-%m-%d")
-            booking_checkout = datetime.strptime(booking['checkout'], "%Y-%m-%d")
-            
-            # 检查日期重叠
-            if checkin_date < booking_checkout and checkout_date > booking_checkin:
-                return False
-        except:
-            continue
-    
-    return True
+    return database.check_availability(villa_id, checkin, checkout, exclude_booking_id)
 
 # ============ HTTP健康检查 ============
 class HealthHandler(BaseHTTPRequestHandler):
@@ -129,8 +143,18 @@ class HealthHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        response = '{"status": "ok", "bot": "Taimili Villa Booking Bot v2.0"}'
-        self.wfile.write(response.encode())
+        
+        # 获取数据库健康状态
+        db_health = database.health_check()
+        response = {
+            "status": "ok",
+            "bot": "Taimili Villa Booking Bot v4.0 (SQLite)",
+            "database": db_health['status'],
+            "villas_count": db_health['record_counts'].get('villas', 0),
+            "bookings_count": db_health['record_counts'].get('bookings', 0),
+            "new_features": ["用户画像", "优惠券", "积分系统", "促销码兑换", "评价系统"]
+        }
+        self.wfile.write(json.dumps(response, ensure_ascii=False).encode())
     
     def log_message(self, format, *args):
         pass
@@ -350,8 +374,7 @@ async def villa_detail_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     villa_id = context.args[0].upper()
-    villas = load_villas()
-    villa = next((v for v in villas if v.get('id', '').upper() == villa_id), None)
+    villa = database.get_villa(villa_id)
     
     if not villa:
         await update.message.reply_text(
@@ -367,7 +390,7 @@ async def show_villa_detail(update: Update, villa: dict, reply_to_message_id: in
     name = villa.get('name', '未命名')
     villa_id = villa.get('id', '')
     region = villa.get('region', '')
-    villa_type = villa.get('type', '')
+    room_type = villa.get('room_type') or villa.get('type', '')
     price = format_price(villa.get('price_per_night', 0))
     bedrooms = villa.get('bedrooms', 0)
     bathrooms = villa.get('bathrooms', 0)
@@ -380,7 +403,7 @@ async def show_villa_detail(update: Update, villa: dict, reply_to_message_id: in
         f"{emoji} *{name}*\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🏷️ 编号：{villa_id}\n"
-        f"📍 地区：{region} | {villa_type}\n"
+        f"📍 地区：{region} | {room_type}\n"
         f"💰 价格：{price}/晚\n\n"
         f"🛏️ 卧室：{bedrooms}间 | 🚿 卫生间：{bathrooms}间\n"
         f"👤 最大入住：{max_guests}人\n\n"
@@ -389,9 +412,12 @@ async def show_villa_detail(update: Update, villa: dict, reply_to_message_id: in
     
     if amenities:
         detail_text += "✨ *设施：*\n"
-        detail_text += " • " + "\n • ".join(amenities[:8])
-        if len(amenities) > 8:
-            detail_text += f"\n • ...等{len(amenities)}项设施"
+        if isinstance(amenities, list):
+            detail_text += " • " + "\n • ".join(amenities[:8])
+            if len(amenities) > 8:
+                detail_text += f"\n • ...等{len(amenities)}项设施"
+        else:
+            detail_text += str(amenities)
     
     # 添加预订按钮
     keyboard = [
@@ -459,13 +485,8 @@ async def check_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ 退房日期必须晚于入住日期")
         return
     
-    # 查找可用别墅
-    villas = load_villas()
-    available = []
-    
-    for villa in villas:
-        if is_date_available(villa.get('id'), checkin, checkout):
-            available.append(villa)
+    # 查找可用别墅（使用数据库）
+    available = database.find_available_villas(checkin, checkout)
     
     if not available:
         await update.message.reply_text(
@@ -625,10 +646,9 @@ async def book_select_region(update: Update, context: ContextTypes.DEFAULT_TYPE)
     region = query.data.replace("region_", "")
     context.user_data['region'] = region
     
-    villas = load_villas()
-    region_villas = [v for v in villas if v.get('region') == region]
+    villas = database.get_villas_by_region(region)
     
-    if not region_villas:
+    if not villas:
         await query.edit_message_text(
             f"❌ {region}暂无别墅数据，请选择其他地区",
             reply_markup=get_region_keyboard()
@@ -639,7 +659,7 @@ async def book_select_region(update: Update, context: ContextTypes.DEFAULT_TYPE)
     text = f"{emoji} *{region}别墅列表*\n\n请选择您想要的别墅："
     
     keyboard = []
-    for villa in region_villas:
+    for villa in villas:
         name = villa.get('name', '')
         villa_id = villa.get('id', '')
         price = format_price(villa.get('price_per_night', 0))
@@ -662,8 +682,7 @@ async def book_select_villa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     villa_id = query.data.replace("select_villa_", "")
-    villas = load_villas()
-    villa = next((v for v in villas if v.get('id') == villa_id), None)
+    villa = database.get_villa(villa_id)
     
     if not villa:
         await query.edit_message_text("❌ 未找到该别墅", reply_markup=get_back_keyboard())
@@ -742,7 +761,7 @@ async def book_enter_checkout(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text("❌ 退房日期必须晚于入住日期，请重新输入：")
             return SELECT_CHECKOUT
         
-        # 检查是否可用
+        # 检查是否可用（使用数据库）
         if not is_date_available(villa_id, checkin_str, checkout_str):
             await update.message.reply_text(
                 "❌ 很抱歉，该别墅在您选择的日期已被预订\n"
@@ -929,8 +948,7 @@ async def book_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'contact_note': contact.get('note', ''),
         'price_per_night': villa.get('price_per_night', 0),
         'total_price': villa.get('price_per_night', 0) * calculate_nights(checkin, checkout),
-        'status': 'pending',
-        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'status': 'pending'
     }
     
     if save_booking(booking):
@@ -1034,8 +1052,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 地区选择
     elif data.startswith("region_"):
         region = data.replace("region_", "")
-        villas = load_villas()
-        region_villas = [v for v in villas if v.get('region') == region]
+        region_villas = database.get_villas_by_region(region)
         if region_villas:
             await show_villa_list(update, region_villas, region)
         else:
@@ -1050,8 +1067,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.clear()
         context.user_data['villa_id'] = villa_id
         
-        villas = load_villas()
-        villa = next((v for v in villas if v.get('id') == villa_id), None)
+        villa = database.get_villa(villa_id)
         
         if villa:
             context.user_data['villa'] = villa
@@ -1091,6 +1107,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ============ 主函数 ============
 def main():
+    # 初始化数据库
+    init_database()
+    
     # 启动HTTP健康检查服务器
     http_thread = threading.Thread(target=run_http_server, daemon=True)
     http_thread.start()
@@ -1159,10 +1178,32 @@ def main():
         pass_update_to_callback=True
     ))
     
+    # ============ 新功能处理器 (v4.0) ============
+    # 用户画像 - /profile
+    application.add_handler(CommandHandler("profile", profile_cmd))
+    
+    # 预订历史 - /mybookings (增强版)
+    register_mybookings_handlers(application)
+    
+    # 优惠券 - /coupons
+    register_coupons_handlers(application)
+    
+    # 积分查询 - /points
+    application.add_handler(CommandHandler("points", points_cmd))
+    
+    # 促销码兑换 - /redeem
+    register_redeem_handlers(application)
+    
+    # 评价 - /review
+    register_review_handlers(application)
+    
+    # 帮助中心 - /help, /faq (增强版)
+    register_help_handlers(application)
+    
     # 消息处理器
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
-    logger.info("🤖 Taimili Villa Booking Bot v2.0 启动中...")
+    logger.info("🤖 Taimili Villa Booking Bot v4.0 (SQLite) 启动中...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':

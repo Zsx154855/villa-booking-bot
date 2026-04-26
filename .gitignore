@@ -1,0 +1,47 @@
+# 环境变量文件（包含敏感信息，禁止提交到 GitHub）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+data/*.sqlite
+
+# 日志
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Telegram Bot 数据
+bookings.json
+
+# 备份文件
+backups/
+*.bak
+*.backup
+
+# Koyeb 本地文件
+.koyeb/
