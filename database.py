@@ -132,7 +132,53 @@ def init_db():
         init_sqlite_schema(schema_path)
     
     logger.info("✅ 数据库初始化完成")
+    
+    # 自动导入初始数据（如果数据库为空）
+    _auto_import_initial_data()
+    
     return True
+
+def _auto_import_initial_data():
+    """自动导入初始数据（如果数据库为空）"""
+    try:
+        # 检查是否有别墅数据
+        villas = get_all_villas(active_only=False)
+        if villas:
+            logger.info(f"📊 数据库已有 {len(villas)} 套别墅数据")
+            return
+        
+        # 尝试从 villas.json 导入
+        villas_json_path = os.path.join(os.path.dirname(__file__), "villas.json")
+        if os.path.exists(villas_json_path):
+            logger.info("🔄 检测到数据库为空，自动导入villas.json...")
+            with open(villas_json_path, 'r', encoding='utf-8') as f:
+                villas_data = json.load(f)
+            
+            imported = 0
+            for villa in villas_data:
+                # 转换字段名
+                villa_record = {
+                    "id": villa.get("id"),
+                    "name": villa.get("name"),
+                    "region": villa.get("region"),
+                    "room_type": villa.get("type"),
+                    "price_per_night": villa.get("price_per_night", 0),
+                    "bedrooms": villa.get("bedrooms", 0),
+                    "bathrooms": villa.get("bathrooms", 0),
+                    "max_guests": villa.get("max_guests", 0),
+                    "amenities": json.dumps(villa.get("amenities", []), ensure_ascii=False),
+                    "images": json.dumps(villa.get("images", []), ensure_ascii=False),
+                    "description": villa.get("description", ""),
+                    "is_active": True
+                }
+                if create_villa(villa_record):
+                    imported += 1
+            
+            logger.info(f"✅ 成功导入 {imported} 套别墅数据")
+        else:
+            logger.warning("⚠️ 未找到villas.json文件，请手动迁移数据")
+    except Exception as e:
+        logger.error(f"❌ 自动导入数据失败: {e}")
 
 def init_sqlite_schema(schema_path: str):
     """初始化 SQLite schema"""
