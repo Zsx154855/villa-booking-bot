@@ -1,0 +1,45 @@
+# Render Cron Job 配置示例
+# =========================================
+# 此文件用于在 Render 平台上配置定时备份任务
+# 
+# 使用方法:
+# 1. 在 Render Dashboard 中创建 Cron Job
+# 2. 或使用 Render CLI: render cron create
+# =========================================
+
+# 每日备份 - 每天 UTC 02:00
+daily_backup: |
+  schedule: "0 2 * * *"
+  command: python scripts/backup.py --type daily --no-cleanup
+  description: "每日数据库备份"
+  headers:
+    Content-Type: "application/json"
+
+# 每周备份 - 每周日 UTC 03:00
+weekly_backup: |
+  schedule: "0 3 * * 0"
+  command: python scripts/backup.py --type weekly
+  description: "每周完整数据库备份"
+
+# 月度归档 - 每月1日 UTC 04:00
+monthly_backup: |
+  schedule: "0 4 1 * *"
+  command: python scripts/backup.py --type monthly
+  description: "月度数据库归档备份"
+
+# =========================================
+# Render CLI 命令示例
+# =========================================
+# 
+# 创建每日备份 Cron Job:
+# render cron create \
+#   --name=daily-db-backup \
+#   --schedule="0 2 * * *" \
+#   --command="python scripts/backup.py --type daily --no-cleanup" \
+#   --service=tромili-villa-bot
+#
+# 查看 Cron Jobs:
+# render cron list
+#
+# 删除 Cron Job:
+# render cron delete daily-db-backup
