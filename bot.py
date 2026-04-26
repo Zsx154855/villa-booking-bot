@@ -955,6 +955,34 @@ async def book_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
         emoji = REGION_EMOJI.get(villa.get('region', ''), "📍")
         nights = calculate_nights(checkin, checkout)
         
+        # ===== 生成并发送PDF确认单 =====
+        try:
+            import io
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from src.services.document import generate_confirmation_pdf_bytes
+            
+            # 获取别墅完整信息
+            villa_full = database.get_villa(villa.get('id', ''))
+            
+            # 添加booking_id字段用于PDF
+            booking['booking_id'] = booking_id
+            
+            # 生成PDF
+            pdf_bytes = generate_confirmation_pdf_bytes(booking, villa_full or villa)
+            
+            # 发送PDF给用户
+            await context.bot.send_document(
+                chat_id=user_id,
+                document=io.BytesIO(pdf_bytes),
+                filename=f"booking_confirmation_{booking_id}.pdf",
+                caption=f"📄 预订确认单 | Booking #{booking_id}\n\n请保存此确认单作为入住凭证"
+            )
+            logger.info(f"✅ PDF确认单已发送给用户 {user_id}")
+        except ImportError:
+            logger.warning("PDF模块未安装，跳过PDF生成")
+        except Exception as e:
+            logger.warning(f"PDF生成失败: {e}")
+        
         success_text = (
             f"✅ *预订提交成功！*\n"
             f"━━━━━━━━━━━━━━━━━━━━\n\n"
@@ -963,6 +991,7 @@ async def book_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📅 {checkin} → {checkout}（{nights}晚）\n"
             f"👤 入住人：{contact.get('name', '')}\n\n"
             f"💰 总价：{format_price(booking['total_price'])}\n\n"
+            f"📄 确认单已发送至本对话\n\n"
             f"━━━━━━━━━━━━━━━━━━━━\n\n"
             f"⏳ 您的预订已提交，客服将在24小时内\n"
             f"与您联系确认订单详情。\n\n"

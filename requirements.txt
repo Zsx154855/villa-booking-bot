@@ -4,5 +4,5 @@ python-telegram-bot==21.11.1
 # Database - PostgreSQL (Koyeb production) + SQLite (local dev)
 psycopg2-binary==2.9.9
 
-# Optional: asyncpg for async PostgreSQL support (future use)
-# asyncpg==0.29.0
+# PDF generation
+reportlab>=4.0.0
