@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       backup_type:
-        description: 'Backup Type'
+        description: '选择备份类型'
         required: true
         default: 'daily'
         type: choice
@@ -17,7 +17,6 @@ on:
           - daily
           - weekly
           - monthly
-        description: '选择备份类型'
 
 env:
   PYTHON_VERSION: '3.9'
