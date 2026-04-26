@@ -1276,6 +1276,13 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
     logger.info("🤖 Taimili Villa Booking Bot v4.0 (SQLite) 启动中...")
+    
+    # Python 3.10+ 兼容性修复：确保事件循环存在
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+    
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
