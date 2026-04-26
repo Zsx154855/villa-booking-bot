@@ -25,7 +25,7 @@ from handlers import (
     coupons_cmd, register_coupons_handlers,
     points_cmd, register_points_handlers,
     redeem_cmd, register_redeem_handlers,
-    review_cmd, review_submit_cmd, register_review_handlers,
+    review_cmd, review_submit, register_review_handlers,
     help_cmd, faq_cmd, register_help_handlers
 )
 
