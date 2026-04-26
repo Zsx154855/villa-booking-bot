@@ -1,122 +1,58 @@
 name: Database Backup
 
 on:
-  # 推送触发（测试用）
-  push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/backup.yml'
-      - 'scripts/backup.py'
-  
-  # 定时执行 - 每天 UTC 02:00
+  # 定时执行 - 每天 UTC 02:00 (北京时间 10:00)
   schedule:
     - cron: '0 2 * * *'
   
   # 手动触发
   workflow_dispatch:
-    inputs:
-      backup_type:
-        description: '选择备份类型'
-        required: true
-        default: 'daily'
-        type: choice
-        options:
-          - daily
-          - weekly
-          - monthly
-
-env:
-  PYTHON_VERSION: '3.9'
 
 jobs:
   backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          
-      - name: Install dependencies
+      - name: Trigger Render Backup
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          # 调用Render健康检查URL唤醒服务
+          curl -s "${{ secrets.RENDER_URL }}/"
+          sleep 5
           
-      - name: Create backup directories
-        run: |
-          mkdir -p data/backups
+          # 调用备份API (需要先添加这个端点)
+          RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.BACKUP_SECRET }}" \
+            "${{ secrets.RENDER_URL }}/api/backup")
           
-      - name: Run database backup
-        id: backup
-        run: |
-          BACKUP_TYPE=${{ inputs.backup_type || 'daily' }}
-          echo "开始执行 $BACKUP_TYPE 备份..."
-          python scripts/backup.py --type $BACKUP_TYPE --no-cleanup
-        env:
-          DB_PATH: data/villas.db
-          BACKUP_DIR: data/backups
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPO: ${{ github.repository }}
+          echo "Backup response: $RESPONSE"
           
-      - name: Upload backup to GitHub Release
-        if: inputs.backup_type == 'weekly' || inputs.backup_type == 'monthly' || false
-        run: |
-          # 获取最新备份文件
-          BACKUP_FILE=$(ls -t data/backups/villas_*.db 2>/dev/null | head -1)
-          
-          if [ -n "$BACKUP_FILE" ]; then
-            echo "📦 备份文件: $BACKUP_FILE"
-            
-            # 获取备份文件名
-            BACKUP_NAME=$(basename "$BACKUP_FILE")
-            
-            # 创建 tag
-            TAG="backup-$(date +%Y%m%d-%H%M%S)"
-            
-            # 创建发布
-            gh release create "$TAG" \
-              --title "Database Backup $TAG" \
-              --notes "Automatic $BACKUP_TYPE database backup" \
-              "$BACKUP_FILE" \
-              "${BACKUP_FILE%.db}.json" 2>/dev/null || echo "发布创建完成"
+          # 检查是否成功
+          if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+            echo "✅ Backup triggered successfully"
+          else
+            echo "⚠️ Backup may have failed"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Upload backup artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backup-artifact-${{ github.run_number }}
-          path: |
-            data/backups/*.db
-            data/backups/*.json
-          retention-days: 7
-          
-      - name: Cleanup old backups locally
-        if: always()
-        run: |
-          python scripts/backup.py --type daily --no-upload
-        env:
-          DB_PATH: data/villas.db
-          BACKUP_DIR: data/backups
-          
+
   notify:
     needs: backup
     runs-on: ubuntu-latest
     if: always()
     
     steps:
-      - name: Check backup status
+      - name: Send Telegram Notification
         run: |
-          if [ "${{ needs.backup.result }}" == "success" ]; then
-            echo "✅ 备份任务成功完成"
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" = "success" ]; then
+            EMOJI="✅"
+            MSG="数据库备份已触发"
           else
-            echo "❌ 备份任务失败，请检查日志"
-            exit 1
+            EMOJI="❌"
+            MSG="数据库备份触发失败"
           fi
+          
+          curl -s -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_NOTIFY_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_NOTIFY_CHAT_ID }}" \
+            -d text="$EMOJI Taimili Villa Bot - $MSG" \
+            -d parse_mode="HTML"

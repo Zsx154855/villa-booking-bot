@@ -164,8 +164,56 @@ class HealthAndWebhookHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response, ensure_ascii=False).encode())
     
     def do_POST(self):
-        """处理Stripe Webhook回调"""
-        # 检查路径
+        """处理Stripe Webhook和备份API回调"""
+        # 备份API
+        if self.path == '/api/backup':
+            # 验证授权
+            auth = self.headers.get('Authorization', '')
+            backup_secret = os.environ.get('BACKUP_SECRET', '')
+            
+            if backup_secret and auth != f'Bearer {backup_secret}':
+                self.send_response(401)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                return
+            
+            try:
+                import subprocess
+                # 执行备份脚本
+                result = subprocess.run(
+                    ['python', 'scripts/backup.py', '--type', 'daily'],
+                    capture_output=True,
+                    text=True,
+                    timeout=60
+                )
+                
+                if result.returncode == 0:
+                    self.send_response(200)
+                    self.wfile.write(json.dumps({
+                        "status": "ok",
+                        "message": "Backup completed",
+                        "output": result.stdout[-500:] if result.stdout else ""
+                    }, ensure_ascii=False).encode())
+                    logger.info("✅ 数据库备份完成")
+                else:
+                    self.send_response(500)
+                    self.wfile.write(json.dumps({
+                        "status": "error",
+                        "message": result.stderr[-500:] if result.stderr else "Unknown error"
+                    }).encode())
+                    logger.error(f"❌ 备份失败: {result.stderr}")
+                    
+            except Exception as e:
+                self.send_response(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                logger.error(f"❌ 备份执行失败: {e}")
+            
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            return
+        
+        # Stripe Webhook
         if self.path != '/webhook/stripe':
             self.send_response(404)
             self.send_header('Content-type', 'application/json')
