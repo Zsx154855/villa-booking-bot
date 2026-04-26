@@ -143,8 +143,8 @@ def is_date_available(villa_id, checkin, checkout, exclude_booking_id=None):
     """检查别墅在指定日期是否可用"""
     return database.check_availability(villa_id, checkin, checkout, exclude_booking_id)
 
-# ============ HTTP健康检查 ============
-class HealthHandler(BaseHTTPRequestHandler):
+# ============ HTTP健康检查和Webhook ============
+class HealthAndWebhookHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
@@ -158,16 +158,58 @@ class HealthHandler(BaseHTTPRequestHandler):
             "database": db_health['status'],
             "villas_count": db_health['record_counts'].get('villas', 0),
             "bookings_count": db_health['record_counts'].get('bookings', 0),
-            "new_features": ["用户画像", "优惠券", "积分系统", "促销码兑换", "评价系统"]
+            "new_features": ["用户画像", "优惠券", "积分系统", "促销码兑换", "评价系统", "Stripe支付"]
         }
         self.wfile.write(json.dumps(response, ensure_ascii=False).encode())
+    
+    def do_POST(self):
+        """处理Stripe Webhook回调"""
+        # 检查路径
+        if self.path != '/webhook/stripe':
+            self.send_response(404)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Not found"}).encode())
+            return
+        
+        # 获取签名头
+        signature = self.headers.get('Stripe-Signature', '')
+        
+        # 读取请求体
+        content_length = int(self.headers.get('Content-Length', 0))
+        payload = self.rfile.read(content_length)
+        
+        # 处理Webhook（同步执行，因为HTTP处理器不能使用async）
+        try:
+            # 导入并使用asyncio处理
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(
+                handle_stripe_webhook(payload, signature)
+            )
+            loop.close()
+            
+            # 发送响应
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode())
+            
+            logger.info(f"✅ Stripe Webhook处理完成: {result}")
+            
+        except Exception as e:
+            logger.error(f"❌ Stripe Webhook处理失败: {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
     
     def log_message(self, format, *args):
         pass
 
 def run_http_server():
-    server = HTTPServer(('0.0.0.0', PORT), HealthHandler)
-    logger.info(f"HTTP健康检查服务器启动: 端口 {PORT}")
+    server = HTTPServer(('0.0.0.0', PORT), HealthAndWebhookHandler)
+    logger.info(f"HTTP服务器启动: 端口 {PORT} (健康检查 + Stripe Webhook)")
     server.serve_forever()
 
 # ============ 通用键盘 ============
@@ -620,6 +662,16 @@ async def contact_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif update.callback_query:
         await update.callback_query.edit_message_text(contact_text, parse_mode='Markdown', reply_markup=keyboard)
 
+# ============ 支付命令 ============
+async def pay_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """支付命令 /pay <booking_id>"""
+    text, keyboard = await pay_command(update, context)
+    
+    if update.message:
+        await update.message.reply_text(text, parse_mode='Markdown', reply_markup=keyboard)
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(text, parse_mode='Markdown', reply_markup=keyboard)
+
 # ============ 预订流程 ============
 async def book_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """开始预订命令"""
@@ -1001,10 +1053,13 @@ async def book_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"━━━━━━━━━━━━━━━━━━━━\n\n"
             f"⏳ 您的预订已提交，客服将在24小时内\n"
             f"与您联系确认订单详情。\n\n"
+            f"💳 您可以立即完成线上支付，\n"
+            f"   支付成功后预订自动确认。\n\n"
             f"如有疑问，请联系：@TaimiliSupport"
         )
         
         keyboard = [
+            [InlineKeyboardButton("💳 立即支付", callback_data=f"pay_{booking_id}")],
             [InlineKeyboardButton("📋 查看我的预订", callback_data="cmd_mybookings")],
             [InlineKeyboardButton("🏠 返回主菜单", callback_data="main_menu")]
         ]
@@ -1161,6 +1216,34 @@ def main():
     application.add_handler(CommandHandler("check", check_cmd))
     application.add_handler(CommandHandler("mybookings", mybookings_cmd))
     application.add_handler(CommandHandler("contact", contact_cmd))
+    application.add_handler(CommandHandler("pay", pay_cmd))
+    
+    # ============ 支付回调处理器 ============
+    async def handle_pay_callback(update, context):
+        """处理支付相关回调"""
+        query = update.callback_query
+        await query.answer()
+        data = query.data
+        
+        if data.startswith("pay_"):
+            booking_id = data.replace("pay_", "")
+            await query.edit_message_text("⏳ 正在生成支付链接...")
+            
+            # 调用支付命令处理
+            text, keyboard = await pay_command(update, context.args=[booking_id])
+            
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=keyboard)
+            
+        elif data.startswith("check_payment_"):
+            booking_id = data.replace("check_payment_", "")
+            text = await check_payment_status(update, context, booking_id)
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("💳 立即支付", callback_data=f"pay_{booking_id}")],
+                [InlineKeyboardButton("📋 查看我的预订", callback_data="cmd_mybookings")]
+            ])
+            await query.edit_message_text(text, parse_mode='Markdown', reply_markup=keyboard)
+    
+    application.add_handler(CallbackQueryHandler(handle_pay_callback, pattern="^(pay_|check_payment_)"))
     
     # 预订流程 ConversationHandler
     book_conv = ConversationHandler(

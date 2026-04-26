@@ -8,6 +8,7 @@ from .points_handler import points_cmd, register_points_handlers
 from .redeem_handler import redeem_cmd, register_redeem_handlers
 from .review_handler import review_cmd, review_submit, register_review_handlers
 from .help_handler import help_cmd, faq_cmd, register_help_handlers
+from .report_handler import report_cmd, admin_report_cmd, register_report_handlers
 
 __all__ = [
     'profile_cmd',
@@ -27,4 +28,7 @@ __all__ = [
     'help_cmd',
     'faq_cmd',
     'register_help_handlers',
+    'report_cmd',
+    'admin_report_cmd',
+    'register_report_handlers',
 ]

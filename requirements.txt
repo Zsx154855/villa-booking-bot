@@ -6,3 +6,6 @@ psycopg2-binary==2.9.9
 
 # PDF generation
 reportlab>=4.0.0
+
+# Payment - Stripe
+stripe>=7.0.0
