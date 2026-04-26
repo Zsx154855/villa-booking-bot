@@ -161,14 +161,11 @@ def init_pg_schema(schema_path: str):
 # ============ 别墅数据操作 ============
 def get_all_villas(region: Optional[str] = None, active_only: bool = True) -> List[Dict]:
     """获取所有别墅列表"""
-    placeholders = _get_param_placeholder(1)
     sql = "SELECT * FROM villas WHERE 1=1"
     params = []
-    param_idx = 1
     
     if region:
-        param_idx += 1
-        sql += f" AND region = {placeholders.format(param_idx)}"
+        sql += " AND region = ?"
         params.append(region)
     
     if active_only:
@@ -177,7 +174,7 @@ def get_all_villas(region: Optional[str] = None, active_only: bool = True) -> Li
     sql += " ORDER BY region, id"
     
     with get_connection() as conn:
-        cursor = conn.execute(sql, _adapt_params(params))
+        cursor = conn.execute(sql, params)
         rows = cursor.fetchall()
         return [_row_to_dict(row, cursor.description) for row in rows]
 
@@ -198,7 +195,6 @@ def get_villas_by_region(region: str) -> List[Dict]:
 
 def create_villa(villa: Dict) -> bool:
     """创建新别墅记录"""
-    placeholders = _get_param_placeholder(1)
     try:
         with get_connection() as conn:
             columns = [
@@ -206,7 +202,7 @@ def create_villa(villa: Dict) -> bool:
                 "bedrooms", "bathrooms", "max_guests", "amenities",
                 "images", "description", "is_active"
             ]
-            values_placeholders = ", ".join([placeholders.format(i+1) for i in range(len(columns))])
+            values_placeholders = ", ".join(["?" for _ in range(len(columns))])
             
             conn.execute(f"""
                 INSERT INTO villas (
