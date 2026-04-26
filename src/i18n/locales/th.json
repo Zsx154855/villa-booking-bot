@@ -1,0 +1,37 @@
+{
+  "bot": {
+    "name": "การจองวิลล่า Taimili",
+    "welcome": "ยินดีต้อนรับสู่ผู้ช่วยจองวิลล่า Taimili!",
+    "regions": {
+      "pattaya": "พัทยา",
+      "bangkok": "กรุงเทพฯ",
+      "phuket": "ภูเก็ต"
+    }
+  },
+  "commands": {
+    "start": "เริ่มต้น",
+    "help": "ช่วยเหลือ",
+    "villas": "ดูวิลล่า",
+    "book": "จองเลย",
+    "mybookings": "การจองของฉัน",
+    "contact": "ติดต่อเรา"
+  },
+  "booking": {
+    "select_region": "กรุณาเลือกภูมิภาค",
+    "select_villa": "กรุณาเลือกวิลล่า",
+    "enter_checkin": "กรุณากรอกวันเช็คอิน (YYYY-MM-DD)",
+    "enter_checkout": "กรุณากรอกวันเช็คเอาท์ (YYYY-MM-DD)",
+    "enter_guests": "กรุณากรอกจำนวนผู้เข้าพัก",
+    "enter_contact": "กรุณากรอกข้อมูลติดต่อ",
+    "confirm": "ยืนยันการจอง",
+    "cancel": "ยกเลิก",
+    "success": "จองสำเร็จ!",
+    "failed": "การจองล้มเหลว"
+  },
+  "messages": {
+    "booking_success": "การจองของคุณได้รับการยืนยันแล้ว!",
+    "booking_pending": "การจองของคุณอยู่ระหว่างรอการยืนยัน",
+    "payment_required": "ต้องชำระเงินเพื่อยืนยันการจอง",
+    "checkin_reminder": "แจ้งเตือน: เช็คอินพรุ่งนี้!"
+  }
+}

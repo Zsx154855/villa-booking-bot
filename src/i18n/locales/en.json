@@ -1,0 +1,37 @@
+{
+  "bot": {
+    "name": "Taimili Villa Booking",
+    "welcome": "Welcome to Taimili Villa Booking Assistant!",
+    "regions": {
+      "pattaya": "Pattaya",
+      "bangkok": "Bangkok", 
+      "phuket": "Phuket"
+    }
+  },
+  "commands": {
+    "start": "Start",
+    "help": "Help",
+    "villas": "Browse Villas",
+    "book": "Book Now",
+    "mybookings": "My Bookings",
+    "contact": "Contact Us"
+  },
+  "booking": {
+    "select_region": "Please select a region",
+    "select_villa": "Please select a villa",
+    "enter_checkin": "Enter check-in date (YYYY-MM-DD)",
+    "enter_checkout": "Enter check-out date (YYYY-MM-DD)",
+    "enter_guests": "Enter number of guests",
+    "enter_contact": "Enter contact information",
+    "confirm": "Confirm Booking",
+    "cancel": "Cancel",
+    "success": "Booking confirmed!",
+    "failed": "Booking failed"
+  },
+  "messages": {
+    "booking_success": "Your booking has been confirmed!",
+    "booking_pending": "Your booking is pending confirmation.",
+    "payment_required": "Payment required to confirm booking.",
+    "checkin_reminder": "Reminder: Check-in tomorrow!"
+  }
+}

@@ -29,6 +29,12 @@ from handlers import (
     help_cmd, faq_cmd, register_help_handlers
 )
 
+# 导入支付处理模块
+from src.services.payment.handlers import (
+    pay_command, check_payment_status, handle_stripe_webhook,
+    get_payment_button, format_payment_message
+)
+
 # 配置日志
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

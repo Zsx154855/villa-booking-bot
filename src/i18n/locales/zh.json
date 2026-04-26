@@ -1,0 +1,37 @@
+{
+  "bot": {
+    "name": "Taimili别墅预订",
+    "welcome": "欢迎来到Taimili别墅预订助手！",
+    "regions": {
+      "pattaya": "芭提雅",
+      "bangkok": "曼谷",
+      "phuket": "普吉岛"
+    }
+  },
+  "commands": {
+    "start": "开始",
+    "help": "帮助",
+    "villas": "浏览别墅",
+    "book": "立即预订",
+    "mybookings": "我的预订",
+    "contact": "联系客服"
+  },
+  "booking": {
+    "select_region": "请选择地区",
+    "select_villa": "请选择别墅",
+    "enter_checkin": "请输入入住日期 (YYYY-MM-DD)",
+    "enter_checkout": "请输入退房日期 (YYYY-MM-DD)",
+    "enter_guests": "请输入入住人数",
+    "enter_contact": "请输入联系人信息",
+    "confirm": "确认预订",
+    "cancel": "取消",
+    "success": "预订成功！",
+    "failed": "预订失败"
+  },
+  "messages": {
+    "booking_success": "您的预订已确认！",
+    "booking_pending": "您的预订待确认中。",
+    "payment_required": "需要支付以确认预订。",
+    "checkin_reminder": "提醒：明天入住！"
+  }
+}

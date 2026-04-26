@@ -394,6 +394,26 @@ def cancel_booking(booking_id: str) -> bool:
     """取消预订"""
     return update_booking_status(booking_id, 'cancelled')
 
+def update_booking_field(booking_id: str, field: str, value: Any) -> bool:
+    """更新预订的单个字段"""
+    try:
+        # 验证字段名安全性
+        allowed_fields = {'payment_id', 'payment_status', 'stripe_customer_id'}
+        if field not in allowed_fields:
+            logger.warning(f"⚠️ 尝试更新不允许的字段: {field}")
+            return False
+        
+        with get_connection() as conn:
+            conn.execute(
+                f"UPDATE bookings SET {field} = ?, updated_at = ? WHERE booking_id = ?",
+                (value, datetime.now().isoformat(), booking_id)
+            )
+            logger.info(f"✅ 预订字段更新: {booking_id}.{field} = {value}")
+            return True
+    except Exception as e:
+        logger.error(f"更新预订字段失败: {e}")
+        return False
+
 # ============ 可用性检查 ============
 def check_availability(villa_id: str, checkin: str, checkout: str, 
                        exclude_booking_id: Optional[str] = None) -> bool:
