@@ -426,6 +426,12 @@ class ReportGenerator:
         prev_data = self._execute_query(query_prev, (prev_start.isoformat(), prev_end.isoformat()))
         
         # 同比数据（去年同月）
+        yoy_start = date(year - 1, month, 1)
+        if month == 12:
+            yoy_end = date(year, 1, 1) - timedelta(days=1)
+        else:
+            yoy_end = date(year - 1, month + 1, 1) - timedelta(days=1)
+        
         query_yoy = """
             SELECT COUNT(*) as count,
                    SUM(total_price) as revenue
@@ -433,11 +439,7 @@ class ReportGenerator:
             WHERE DATE(created_at) BETWEEN ? AND ?
             AND status IN ('pending', 'confirmed', 'completed')
         """
-        yoy_data = self._execute_query(query_yoy, (
-            date(year - 1, month, 1).isoformat(),
-            date(year - 1, month, 1 if month > 1 else 12 else 12, 
-                 (date(year - 1, month + 1 if month < 12 else 1, 1) - timedelta(days=1)).day if month < 12 else 31).isoformat()
-        ))
+        yoy_data = self._execute_query(query_yoy, (yoy_start.isoformat(), yoy_end.isoformat()))
         
         current_bookings = summary[0]['count'] if summary else 0
         current_revenue = summary[0]['revenue'] or 0

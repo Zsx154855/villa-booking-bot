@@ -26,7 +26,8 @@ from handlers import (
     points_cmd, register_points_handlers,
     redeem_cmd, register_redeem_handlers,
     review_cmd, review_submit, register_review_handlers,
-    help_cmd, faq_cmd, register_help_handlers
+    help_cmd, faq_cmd, register_help_handlers,
+    report_cmd, admin_report_cmd, register_report_handlers
 )
 
 # 导入支付处理模块
@@ -1230,7 +1231,7 @@ def main():
             await query.edit_message_text("⏳ 正在生成支付链接...")
             
             # 调用支付命令处理
-            text, keyboard = await pay_command(update, context.args=[booking_id])
+            text, keyboard = await pay_command(update, context, booking_id=booking_id)
             
             await query.edit_message_text(text, parse_mode='Markdown', reply_markup=keyboard)
             
@@ -1389,6 +1390,11 @@ def main():
     
     # 帮助中心 - /help, /faq (增强版)
     register_help_handlers(application)
+    
+    # 数据报表 - /report, /adminreport
+    application.add_handler(CommandHandler("report", report_cmd))
+    application.add_handler(CommandHandler("adminreport", admin_report_cmd))
+    register_report_handlers(application)
     
     # 消息处理器
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

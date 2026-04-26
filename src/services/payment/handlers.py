@@ -39,7 +39,7 @@ def get_payment_service():
     return _payment_service
 
 # ============ 支付命令处理 ============
-async def pay_command(update, context) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+async def pay_command(update, context, booking_id: str = None) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
     """
     处理 /pay 命令
     显示支付链接或二维码
@@ -47,22 +47,24 @@ async def pay_command(update, context) -> Tuple[str, Optional[InlineKeyboardMark
     Args:
         update: Telegram Update
         context: Bot context
+        booking_id: 预订ID（可选，如果不提供则从 context.args 获取）
         
     Returns:
         (message_text, reply_markup)
     """
     # 解析预订ID
-    if not context.args:
-        return (
-            "📝 *发起支付*\n\n"
-            "请提供预订编号：\n"
-            "`/pay <预订编号>`\n\n"
-            "例如：`/pay ABC12345`\n\n"
-            "💡 您可以使用 /mybookings 查看您的预订",
-            None
-        )
-    
-    booking_id = context.args[0].upper().strip()
+    if not booking_id:
+        if context and context.args:
+            booking_id = context.args[0].upper().strip()
+        else:
+            return (
+                "📝 *发起支付*\n\n"
+                "请提供预订编号：\n"
+                "`/pay <预订编号>`\n\n"
+                "例如：`/pay ABC12345`\n\n"
+                "💡 您可以使用 /mybookings 查看您的预订",
+                None
+            )
     
     # 获取预订信息
     booking = database.get_booking(booking_id)
