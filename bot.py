@@ -1391,69 +1391,54 @@ def main():
         asyncio.set_event_loop(asyncio.new_event_loop())
     
     # ============ Webhook 模式配置（适配 Render 免费版休眠机制） ============
+    from aiohttp import web
+    
     WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://villa-booking-bot.onrender.com")
     WEBHOOK_PATH = "/webhook/telegram"
     FULL_WEBHOOK_URL = f"{WEBHOOK_URL}{WEBHOOK_PATH}"
     
     logger.info(f"🔗 使用 Webhook 模式: {FULL_WEBHOOK_URL}")
     
-    # 手动管理 Webhook（兼容 python-telegram-bot v21+，不依赖内部 tornado）
-    import tornado.web
-    import tornado.ioloop
-    
-    class TelegramWebhookHandler(tornado.web.RequestHandler):
+    async def handle_telegram_webhook(request):
         """处理 Telegram 推送的 Update"""
-        def initialize(self, app):
-            self.app = app
-        
-        async def post(self):
-            try:
-                update_data = json.loads(self.request.body)
-                update = Update.de_json(update_data, self.app.bot)
-                if update:
-                    await self.app.process_update(update)
-                self.set_status(200)
-                self.write("ok")
-            except Exception as e:
-                logger.error(f"处理Telegram webhook失败: {e}")
-                self.set_status(500)
-                self.write("error")
-        
-        def get(self):
-            self.write("Telegram Webhook Endpoint")
+        try:
+            update_data = await request.json()
+            update = Update.de_json(update_data, application.bot)
+            if update:
+                await application.process_update(update)
+            return web.json_response({"status": "ok"})
+        except Exception as e:
+            logger.error(f"处理Telegram webhook失败: {e}")
+            return web.json_response({"status": "error"}, status=500)
     
-    class HealthCheckHandler(tornado.web.RequestHandler):
+    async def handle_health_check(request):
         """健康检查"""
-        async def get(self):
-            try:
-                db_health = database.health_check()
-                self.write({
-                    "status": "ok",
-                    "bot": "Taimili Villa Booking Bot v4.0 (SQLite)",
-                    "database": db_health['status'],
-                    "villas_count": db_health['record_counts'].get('villas', 0),
-                    "bookings_count": db_health['record_counts'].get('bookings', 0),
-                })
-            except Exception as e:
-                self.write({"status": "error", "error": str(e)})
-            self.set_header("Content-Type", "application/json")
+        try:
+            db_health = database.health_check()
+            return web.json_response({
+                "status": "ok",
+                "bot": "Taimili Villa Booking Bot v4.0 (SQLite)",
+                "database": db_health['status'],
+                "villas_count": db_health['record_counts'].get('villas', 0),
+                "bookings_count": db_health['record_counts'].get('bookings', 0),
+            })
+        except Exception as e:
+            return web.json_response({"status": "error", "error": str(e)})
     
-    class StripeWebhookHandler(tornado.web.RequestHandler):
+    async def handle_stripe_webhook_req(request):
         """Stripe Webhook"""
-        async def post(self):
-            signature = self.request.headers.get('Stripe-Signature', '')
-            payload = self.request.body
-            try:
-                result = await handle_stripe_webhook(payload, signature)
-                self.write(result)
-            except Exception as e:
-                logger.error(f"Stripe Webhook处理失败: {e}")
-                self.set_status(400)
-                self.write({"error": str(e)})
-            self.set_header("Content-Type", "application/json")
+        signature = request.headers.get('Stripe-Signature', '')
+        payload = await request.read()
+        try:
+            result = await handle_stripe_webhook(payload, signature)
+            return web.json_response(result)
+        except Exception as e:
+            logger.error(f"Stripe Webhook处理失败: {e}")
+            return web.json_response({"error": str(e)}, status=400)
     
     async def start_bot():
-        """启动Bot（Webhook模式）"""
+        """启动Bot（Webhook模式，纯asyncio+aiohttp）"""
+        # 初始化 application
         await application.initialize()
         await application.start()
         
@@ -1464,29 +1449,26 @@ def main():
         )
         logger.info(f"✅ Telegram Webhook 已设置: {FULL_WEBHOOK_URL}")
         
-        # 启动 Tornado HTTP 服务器（处理所有路由）
-        tornado_app = tornado.web.Application([
-            (WEBHOOK_PATH, TelegramWebhookHandler, dict(app=application)),
-            ("/health", HealthCheckHandler),
-            ("/", HealthCheckHandler),
-            ("/webhook/stripe", StripeWebhookHandler),
-        ])
+        # 创建 aiohttp 服务器
+        web_app = web.Application()
+        web_app.router.add_post(WEBHOOK_PATH, handle_telegram_webhook)
+        web_app.router.add_get("/health", handle_health_check)
+        web_app.router.add_get("/", handle_health_check)
+        web_app.router.add_post("/webhook/stripe", handle_stripe_webhook_req)
         
-        tornado_app.listen(PORT)
-        logger.info(f"✅ Tornado HTTP 服务器启动: 端口 {PORT}")
+        runner = web.AppRunner(web_app)
+        await runner.setup()
+        site = web.TCPSite(runner, "0.0.0.0", PORT)
+        await site.start()
+        
+        logger.info(f"✅ aiohttp 服务器启动: 端口 {PORT}")
         logger.info(f"🤖 Taimili Villa Booking Bot v4.0 (Webhook模式) 运行中...")
         
-        # 保持事件循环运行
-        tornado.ioloop.IOLoop.current().start()
+        # 保持运行
+        await asyncio.Event().wait()
     
-    # 确保事件循环存在
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
-    loop.run_until_complete(start_bot())
+    # 启动
+    asyncio.run(start_bot())
 
 if __name__ == '__main__':
     main()
