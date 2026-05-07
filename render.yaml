@@ -11,6 +11,8 @@ services:
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+      - key: WEBHOOK_URL
+        value: "https://villa-booking-bot.onrender.com"
       - key: PYTHON_VERSION
         value: "3.9.16"
       - key: PORT
