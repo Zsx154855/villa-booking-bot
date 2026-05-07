@@ -36,3 +36,4 @@ httpx>=0.25.0           # DeepSeek API HTTP 客户端
 # LangGraph - Complex Dialog Flow
 langgraph>=0.2.0
 langgraph-checkpoint>=0.1.0
+tornado>=6.0
