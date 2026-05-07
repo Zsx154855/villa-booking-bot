@@ -113,7 +113,7 @@ class GBrainIntegration:
         
         # 获取用户画像
         profile = self.mcp.get_user_profile(user_id)
-        profile_data = profile.data if profile.success else {}
+        profile_data = profile.data if profile.success and profile.data else {}
         
         # 合并
         return {

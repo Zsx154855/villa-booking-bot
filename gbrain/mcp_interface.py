@@ -13,7 +13,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from .persistence import GBrainPersistence, gbrain_persistence
-from .brain_repo import BrainRepo, brain_repo
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +57,8 @@ class GBrainMCP:
     
     def __init__(
         self,
-        persistence: GBrainPersistence = None,
-        brain_repo: BrainRepo = None
+        persistence = None,
+        brain_repo = None
     ):
         """
         初始化MCP接口
@@ -69,7 +68,16 @@ class GBrainMCP:
             brain_repo: 脑库仓库实例
         """
         self.persistence = persistence or gbrain_persistence
-        self.brain_repo = brain_repo or brain_repo
+        
+        # 延迟导入brain_repo避免循环依赖
+        if brain_repo is None:
+            try:
+                from .brain_repo import brain_repo as _brain_repo
+                self.brain_repo = _brain_repo
+            except ImportError:
+                self.brain_repo = None
+        else:
+            self.brain_repo = brain_repo
         
         # 缓存配置
         self._villa_cache_ttl = 3600  # 1小时
@@ -515,19 +523,21 @@ class GBrainMCP:
         """获取统计信息"""
         try:
             stats = self.persistence.get_stats()
-            stats['brain_repo_available'] = self.brain_repo.is_available() if hasattr(self.brain_repo, 'is_available') else False
-            stats['brain_repo_entries'] = len(self.brain_repo._cache) if hasattr(self.brain_repo, '_cache') else 0
+            brain_repo = getattr(self, 'brain_repo', None)
+            stats['brain_repo_available'] = brain_repo.is_available() if brain_repo and hasattr(brain_repo, 'is_available') else False
+            stats['brain_repo_entries'] = len(brain_repo._cache) if brain_repo and hasattr(brain_repo, '_cache') else 0
             return KnowledgeResponse(success=True, data=stats)
         except Exception as e:
             return KnowledgeResponse(success=False, error=str(e))
     
     def health_check(self) -> Dict[str, Any]:
         """健康检查"""
+        brain_repo = getattr(self, 'brain_repo', None)
         return {
             "persistence": self.persistence.health_check(),
             "brain_repo": {
-                "available": self.brain_repo.is_available() if hasattr(self.brain_repo, 'is_available') else False,
-                "entries": len(self.brain_repo._cache) if hasattr(self.brain_repo, '_cache') else 0
+                "available": brain_repo.is_available() if brain_repo and hasattr(brain_repo, 'is_available') else False,
+                "entries": len(brain_repo._cache) if brain_repo and hasattr(brain_repo, '_cache') else 0
             }
         }
 

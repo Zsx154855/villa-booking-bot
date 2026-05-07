@@ -10,12 +10,15 @@ Layer 3: Agent MCP - 标准化知识接口
 
 __version__ = "1.0.0"
 
-from .brain_repo import BrainRepo
-from .persistence import GBrainPersistence
-from .mcp_interface import GBrainMCP
+from .persistence import GBrainPersistence, gbrain_persistence
+from .brain_repo import BrainRepo, brain_repo
+from .mcp_interface import GBrainMCP, gbrain_mcp
 
 __all__ = [
     "BrainRepo",
-    "GBrainPersistence", 
+    "GBrainPersistence",
     "GBrainMCP",
+    "gbrain_persistence",
+    "gbrain_mcp",
+    "brain_repo",
 ]
