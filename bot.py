@@ -18,6 +18,9 @@ from telegram.ext import (
 # 导入数据库模块
 import database
 
+# 导入记忆系统 (Hermes三层记忆架构)
+from memory_integration import memory_integration
+
 # 导入handlers模块
 from handlers import (
     profile_cmd, register_profile_handlers,
@@ -34,6 +37,14 @@ from handlers import (
 from src.services.payment.handlers import (
     pay_command, check_payment_status, handle_stripe_webhook,
     get_payment_button, format_payment_message
+)
+
+# 导入通知系统模块
+from notifications import (
+    setup_notification_jobs,
+    send_booking_confirmation,
+    send_payment_success,
+    ensure_database_functions
 )
 
 # 配置日志
@@ -310,6 +321,11 @@ def get_confirm_keyboard():
 # ============ 命令处理器 ============
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """开始命令"""
+    # 初始化用户记忆
+    user_id = str(update.effective_user.id if update.effective_user else 0)
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+    memory_integration.on_message_received(user_id, chat_id, "/start")
+    
     welcome_text = (
         "🏠 *欢迎来到Taimili别墅预订助手！*\n\n"
         "我们提供泰国三大热门旅游地区的精品别墅预订服务：\n"
@@ -753,6 +769,12 @@ async def book_select_region(update: Update, context: ContextTypes.DEFAULT_TYPE)
     region = query.data.replace("region_", "")
     context.user_data['region'] = region
     
+    # 更新记忆：用户选择了地区
+    user_id = str(query.from_user.id)
+    session = memory_integration.memory.working.get_or_create_session(user_id, query.message.chat_id)
+    memory_integration.on_intent_detected(session.session_id, "booking")
+    memory_integration.on_region_selected(session.session_id, region)
+    
     villas = database.get_villas_by_region(region)
     
     if not villas:
@@ -797,6 +819,12 @@ async def book_select_villa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     context.user_data['villa_id'] = villa_id
     context.user_data['villa'] = villa
+    
+    # 更新记忆：用户选择了别墅
+    user_id = str(query.from_user.id)
+    session = memory_integration.memory.working.get_or_create_session(user_id, query.message.chat_id)
+    memory_integration.on_villa_selected(session.session_id, villa_id)
+    memory_integration.on_booking_progress(session.session_id, 1)
     
     # 显示别墅详情并要求输入日期
     emoji = REGION_EMOJI.get(villa.get('region', ''), "📍")
@@ -1058,6 +1086,12 @@ async def book_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'status': 'pending'
     }
     
+    # ===== 更新记忆系统：预订完成 =====
+    user_id_str = str(user_id)
+    session = memory_integration.memory.working.get_or_create_session(user_id_str, query.message.chat_id)
+    memory_integration.on_booking_progress(session.session_id, 6)  # 标记预订完成
+    memory_integration.on_booking_completed(user_id_str, session.session_id, booking)
+    
     if save_booking(booking):
         emoji = REGION_EMOJI.get(villa.get('region', ''), "📍")
         nights = calculate_nights(checkin, checkout)
@@ -1118,6 +1152,10 @@ async def book_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown',
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
+        
+        # 发送预订确认通知
+        await send_booking_confirmation(context.bot, str(user_id), booking)
+        
     else:
         await query.edit_message_text(
             "❌ 预订保存失败，请联系客服处理",
@@ -1246,6 +1284,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ============ 主函数 ============
 def main():
+    # ============ 初始化三层记忆系统 (Hermes架构) ============
+    logger.info("🧠 初始化Hermes三层记忆系统...")
+    
+    # Layer 1: Working Memory (已通过模块导入自动初始化)
+    logger.info("✅ Layer 1: Working Memory 已就绪")
+    
+    # Layer 2: Episodic Memory (已通过模块导入自动初始化)
+    logger.info("✅ Layer 2: Episodic Memory 已就绪")
+    
+    # Layer 3: Semantic Memory (已通过模块导入自动初始化)
+    logger.info("✅ Layer 3: Semantic Memory 已就绪")
+    logger.info("🧠 记忆系统初始化完成")
+    
     # 初始化数据库
     init_database()
     
@@ -1255,6 +1306,13 @@ def main():
     
     # 构建应用
     application = Application.builder().token(TOKEN).build()
+    
+    # ============ 初始化通知系统 ============
+    # 确保数据库有必要的函数
+    ensure_database_functions()
+    
+    # 配置通知定时任务
+    setup_notification_jobs(application)
     
     # 命令处理器
     application.add_handler(CommandHandler("start", start))
