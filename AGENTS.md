@@ -5,7 +5,7 @@
 **Name**: Taimili Villa Booking Assistant  
 **Type**: Telegram Chatbot  
 **Language**: 中文为主，支持英文/泰文  
-**Version**: 4.0+ with AI Integration
+**Version**: 4.1+ with LangGraph Integration
 
 ---
 
@@ -38,44 +38,54 @@
 
 ---
 
-## Boundaries (重要限制)
+## LangGraph Integration (复杂对话流程)
 
-### ❌ 不可做的行为
-1. **不处理预订外的问题** - 不回答政治、宗教、无关闲聊
-2. **不提供虚假信息** - 别墅描述必须基于真实数据
-3. **不承诺未确认的事项** - 如可用性、价格变动等
-4. **不泄露用户隐私** - 严格保护用户数据
-5. **不处理退款纠纷** - 引导联系人工客服
+### 概述
+Villa Bot v4.1 集成 LangGraph 实现复杂多轮对话流程，采用状态机架构管理对话状态。
 
-### ❌ 超出范围的问题
-- 天气预报（非别墅相关）
-- 泰国签证政策咨询
-- 机票预订
-- 其他地区（非泰国）的住宿
-- 法律/投资咨询
+### 核心文件
+- `langgraph_flows.py` - LangGraph 对话流程定义
+- `langgraph_integration.py` - 与 bot.py 的集成层
 
----
+### 实现的对话流程
 
-## Response Guidelines
-
-### 消息格式
+#### 1. 预订流程 (Booking Flow)
 ```
-[问候/确认]
-[核心回答 - 简洁明了]
-[行动建议/下一步]
-[可选：相关命令提示]
+入口 → 地区选择 → 日期选择 → 别墅选择 → 人数确认 
+    → 联系信息 → 确认预订 → 等待支付 → 完成
+```
+**状态机状态**: `IDLE → SELECTING_REGION → SELECTING_DATES → SELECTING_VILLA 
+              → ENTERING_GUESTS → ENTERING_CONTACT → CONFIRMING 
+              → AWAITING_PAYMENT → COMPLETED`
+
+#### 2. 客诉流程 (Complaint Flow)
+```
+入口 → 问题接收 → 问题分类 → 自动处理/转人工 → 跟进 → 解决
+```
+**状态机状态**: `IDLE → RECEIVING → CLASSIFYING → AUTO_HANDLING/ESCALATING 
+              → FOLLOWING_UP → RESOLVED`
+
+### LangGraph 最佳实践
+1. **状态设计**: 使用 TypedDict 定义状态，简洁明确
+2. **节点纯函数**: 节点返回部分状态更新，便于测试
+3. **边界验证**: 节点边界进行状态验证
+4. **循环保护**: 设置 max_steps 防止无限循环
+5. **Checkpoint**: 使用 MemorySaver 持久化状态
+
+### 集成方式
+```python
+from langgraph_integration import get_langgraph_manager
+
+manager = get_langgraph_manager()
+result = manager.handle_message(user_id, message)
 ```
 
-### 错误处理
-1. 无法理解时：礼貌请求澄清
-2. 系统错误时：说明情况并引导重试
-3. 超出范围时：明确说明并提供替代方案
-
-### 语气规范
-- 友好、专业、耐心
-- 使用"您"而非"你"
-- 价格始终标注泰铢符号（฿）
-- 日期使用 YYYY-MM-DD 格式
+### 环境变量
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| LANGGRAPH_LLM_PROVIDER | LLM提供者 | deepseek |
+| LANGGRAPH_CHECKPOINTER | 检查点存储 | memory |
+| LANGGRAPH_MAX_STEPS | 最大对话步数 | 20 |
 
 ---
 
@@ -88,27 +98,13 @@
 | /book | 开始预订 |
 | /mybookings | 我的订单 |
 | /profile | 个人中心 |
-| /coupons | 我的优惠券 |
-| /points | 我的积分 |
-
----
-
-## AI Integration (Token Optimization)
-
-### System Prompt Strategy
-- 别墅列表注入 system prompt
-- 用户上下文实时更新
-- 保留最近 5 轮对话
-
-### Token Saving Rules
-1. **contextPruning**: 只传递最近 5 轮对话
-2. **contextInjection**: 关键信息直接注入
-3. **compact**: 超过 10 轮时压缩历史
+| /cancel | 取消当前流程 |
 
 ---
 
 ## Version History
 
+- **v4.1**: LangGraph 复杂对话流程集成
 - **v4.0**: AI 集成，Token 优化
 - **v3.x**: 数据库重构，支付集成
 - **v2.x**: 多功能扩展

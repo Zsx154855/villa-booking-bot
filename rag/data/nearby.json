@@ -1,0 +1,152 @@
+[
+  {
+    "id": "nearby001",
+    "name": "真理寺",
+    "region": "芭提雅",
+    "category": "景点",
+    "description": "完全由手工雕刻的红木和柚木建造的佛教木雕博物馆，展现了泰国精湛的木雕工艺。",
+    "distance": "距芭提雅市区约15公里",
+    "description_en": "Hand-carved Buddhist woodcraft museum made entirely of teak, showcasing exquisite Thai wood carving.",
+    "description_th": "พิพิธภัณฑ์พุทธศิลป์ไม้แกะสลัก สร้างจากไม้เต็มด้วยมือ แสดงศิลปะการแกะสลักไม้ไทย"
+  },
+  {
+    "id": "nearby002",
+    "name": "东芭乐园",
+    "region": "芭提雅",
+    "category": "景点",
+    "description": "集观光、娱乐、文化表演为一体的主题乐园，有大象表演、泰国文化表演和美丽的花园。",
+    "distance": "距芭提雅市区约15公里",
+    "description_en": "Theme park with elephant shows, Thai cultural performances and beautiful gardens.",
+    "description_th": "สวนสนุกพร้อมการแสดงช้าง การแสดงวัฒนธรรมไทย และสวนที่สวยงาม"
+  },
+  {
+    "id": "nearby003",
+    "name": "四方水上市场",
+    "region": "芭提雅",
+    "category": "市场",
+    "description": "杜拉拉升职记取景地，可以体验水上购物的乐趣，品尝各种泰国美食。",
+    "distance": "距芭提雅市区约10公里",
+    "description_en": "Famous floating market, great for shopping and tasting Thai food.",
+    "description_th": "ตลาดน้ำที่มีชื่อเสียง เหมาะสำหรับช้อปปิ้งและลิ้มรสอาหารไทย"
+  },
+  {
+    "id": "nearby004",
+    "name": "大皇宫",
+    "region": "曼谷",
+    "category": "景点",
+    "description": "泰国曼谷必访景点，金碧辉煌的皇宫建筑群，是泰国皇室的居所和政治中心。",
+    "distance": "湄南河畔",
+    "description_en": "Must-visit in Bangkok, golden royal palace complex, residence of Thai monarchy.",
+    "description_th": "จุดแวะที่ต้องไปในกรุงเทพฯ พระราชวังทอง ที่ประทับของราชวงศ์ไทย"
+  },
+  {
+    "id": "nearby005",
+    "name": "郑王庙",
+    "region": "曼谷",
+    "category": "景点",
+    "description": "又称黎明寺，曼谷标志性建筑之一，以独特的佛塔和壮观的景色著称。",
+    "distance": "湄南河畔",
+    "description_en": "Also known as Wat Arun, iconic Bangkok landmark with unique pagoda.",
+    "description_th": "วัดอรุณ สัญลักษณ์ของกรุงเทพฯ ด้วยเจดีย์ที่โดดเด่น"
+  },
+  {
+    "id": "nearby006",
+    "name": "暹罗百丽宫",
+    "region": "曼谷",
+    "category": "购物",
+    "description": "曼谷顶级购物中心，国际品牌云集，还有水族馆和美食中心。",
+    "distance": "暹罗商圈",
+    "description_en": "Top mall in Bangkok with international brands, aquarium and food court.",
+    "description_th": "ห้างสรรพสินค้าชั้นนำในกรุงเทพฯ มีแบรนด์ระดับโลก สวนน้ำและศูนย์อาหาร"
+  },
+  {
+    "id": "nearby007",
+    "name": "四面佛",
+    "region": "曼谷",
+    "category": "景点",
+    "description": "曼谷最灵验的佛像之一，据说有求必应，是当地人和游客必拜之地。",
+    "distance": "暹罗商圈",
+    "description_en": "One of Bangkok's most revered Buddha statues, known for granting wishes.",
+    "description_th": "หนึ่งในพระพุทธรูปที่นับถือมากที่สุดในกรุงเทพฯ เชื่อว่าขอได้ทุกอย่าง"
+  },
+  {
+    "id": "nearby008",
+    "name": "普吉大佛",
+    "region": "普吉岛",
+    "category": "景点",
+    "description": "位于纳卡拉山顶的白玉大佛，是普吉岛的地标，可以俯瞰全岛风光。",
+    "distance": "娜卡拉山",
+    "description_en": "White jade Buddha atop Naka Hill, Phuket landmark with panoramic island views.",
+    "description_th": "พระพุทธรูปหินอ่อนบนยอดเขานาคระ สัญลักษณ์ภูเก็ต วิวเมืองเต็มตา"
+  },
+  {
+    "id": "nearby009",
+    "name": "芭东海滩",
+    "region": "普吉岛",
+    "category": "海滩",
+    "description": "普吉岛最热闹的海滩，夜生活丰富，有酒吧街和各种餐厅。",
+    "distance": "芭东区域",
+    "description_en": "Phuket's most lively beach with vibrant nightlife, bars and restaurants.",
+    "description_th": "ชายหาดที่คึกคักที่สุดในภูเก็ต มีไลฟ์ไนท์ที่หลากหลาย บาร์และร้านอาหาร"
+  },
+  {
+    "id": "nearby010",
+    "name": "皇帝岛",
+    "region": "普吉岛",
+    "category": "离岛",
+    "description": "水质清澈，适合浮潜和深潜，是普吉岛周边最受欢迎的离岛之一。",
+    "distance": "距普吉岛约12公里",
+    "description_en": "Crystal clear waters, great for snorkeling and diving, one of Phuket's most popular islands.",
+    "description_th": "น้ำใสเหมาะดำน้ำ ชายหาดยอดนิยมใกล้ภูเก็ต"
+  },
+  {
+    "id": "nearby011",
+    "name": "幻多奇乐园",
+    "region": "普吉岛",
+    "category": "景点",
+    "description": "泰国版\"迪士尼\"，每晚有精彩的泰国民俗表演和自助晚餐。",
+    "distance": "卡马拉海滩",
+    "description_en": "Thai version of Disneyland with nightly cultural shows and buffet dinner.",
+    "description_th": "เวอร์ชันไทยของดิสนีย์แลนด์ มีการแสดงวัฒนธรรมไทยและบุฟเฟ่ต์ทุกคืน"
+  },
+  {
+    "id": "nearby012",
+    "name": "普吉镇老街",
+    "region": "普吉岛",
+    "category": "景点",
+    "description": "充满南洋风情的彩色老街，保留了大量中葡建筑，是拍照打卡的好地方。",
+    "distance": "普吉镇",
+    "description_en": "Colorful old street with Sino-Portuguese architecture, perfect for photos.",
+    "description_th": "ถนนเก่าสีสันสดใส สถาปัตยกรรมจีน-โปรตุกีส ที่ถ่ายรูปสวย"
+  },
+  {
+    "id": "nearby013",
+    "name": "班赞海鲜市场",
+    "region": "普吉岛",
+    "category": "美食",
+    "description": "芭东必去的海鲜市场，一楼选海鲜，二楼加工，新鲜又实惠。",
+    "distance": "芭东",
+    "description_en": "Must-visit seafood market in Patong, choose seafood downstairs, cook upstairs.",
+    "description_th": "ตลาดซีฟู้ดที่ต้องไปในพัทยา เลือกซีฟู้ดชั้นล่าง ทำอาหารชั้นบน"
+  },
+  {
+    "id": "nearby014",
+    "name": "拉威海鲜市场",
+    "region": "普吉岛",
+    "category": "美食",
+    "description": "当地人更常去的海鲜市场，比芭东便宜更新鲜，是海鲜爱好者的天堂。",
+    "distance": "拉威",
+    "description_en": "Local seafood market, cheaper and fresher than Patong, paradise for seafood lovers.",
+    "description_th": "ตลาดซีฟู้ดท้องถิ่น ถูกกว่าและสดกว่าพัทยา สวรรค์ของคนรักอาหารทะเล"
+  },
+  {
+    "id": "nearby015",
+    "name": "江西冷购物中心",
+    "region": "普吉岛",
+    "category": "购物",
+    "description": "芭东最大的购物中心，有Boots、屈臣氏和各种国际品牌，适合买伴手礼。",
+    "distance": "芭东",
+    "description_en": "Largest mall in Patong with Boots, Watsons and international brands.",
+    "description_th": "ห้างใหญ่ที่สุดในพัทยา มีบูธส์ วอตสันส์ และแบรนด์ระดับโลก"
+  }
+]

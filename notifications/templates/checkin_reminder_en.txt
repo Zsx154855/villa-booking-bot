@@ -1,0 +1,24 @@
+🔔 *Check-in Tomorrow*
+━━━━━━━━━━━━━━━━━━━━
+
+Your check-in is tomorrow! 🌴
+
+📋 Booking ID：*{booking_id}*
+
+{emoji} Villa：{villa_name}
+📅 Check-in：Tomorrow {checkin}
+📅 Check-out：{checkout}
+
+━━━━━━━━━━━━━━━━━━━━
+
+📍 *Check-in Guide*
+• Villa address will be sent on check-in day
+• Check-in time：After 14:00
+• Check-out time：Before 12:00 next day
+• Passport required at check-in
+
+━━━━━━━━━━━━━━━━━━━━
+
+💡 Questions? Contact：@TaimiliSupport
+
+Looking forward to seeing you! ✨

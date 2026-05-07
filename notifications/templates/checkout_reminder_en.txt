@@ -1,0 +1,23 @@
+🔔 *Check-out Tomorrow*
+━━━━━━━━━━━━━━━━━━━━
+
+Your check-out is tomorrow~
+
+📋 Booking ID：*{booking_id}*
+
+{emoji} Villa：{villa_name}
+📅 Check-out：Tomorrow {checkout}
+
+━━━━━━━━━━━━━━━━━━━━
+
+⏰ *Check-out Reminders*
+• Please check out *before 12:00*
+• Return keys to the housekeeper
+• Check for personal belongings
+
+━━━━━━━━━━━━━━━━━━━━
+
+Thank you for staying with us! 🌴
+Hope to see you again~
+
+💡 Questions? Contact：@TaimiliSupport

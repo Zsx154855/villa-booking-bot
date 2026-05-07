@@ -1,0 +1,28 @@
+✅ *Booking Confirmation*
+━━━━━━━━━━━━━━━━━━━━
+
+📋 Booking ID：*{booking_id}*
+
+{emoji} Villa：{villa_name}
+📅 Check-in：{checkin}
+📅 Check-out：{checkout}（{nights} nights）
+👤 Guest：{contact_name}
+
+💰 Total：{total_price}
+
+━━━━━━━━━━━━━━━━━━━━
+
+📄 *Your booking is confirmed!*
+
+Please save this confirmation for check-in.
+
+⏰ *Check-in Tips*
+• Check-in time：After 14:00
+• Check-out time：Before 12:00 next day
+• Passport required at check-in
+
+━━━━━━━━━━━━━━━━━━━━
+
+💡 Questions? Contact：@TaimiliSupport
+
+Looking forward to seeing you! 🌴

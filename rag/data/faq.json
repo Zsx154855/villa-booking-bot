@@ -1,0 +1,152 @@
+[
+  {
+    "id": "faq001",
+    "category": "预订",
+    "question": "如何预订别墅？",
+    "answer": "您可以通过以下方式预订：1) 直接告诉我您想要的别墅、入住日期和人数；2) 使用 /book 命令开始预订流程；3) 联系我们客服微信号进行人工预订。",
+    "question_en": "How to book a villa?",
+    "answer_en": "You can book through: 1) Tell me your preferred villa, dates and guests; 2) Use /book command; 3) Contact our customer service via WeChat.",
+    "question_th": "จองวิลล่าอย่างไร?",
+    "answer_th": "คุณสามารถจองได้โดย: 1) บอกวิลล่าที่ต้องการ วันที่เช็คอิน และจำนวนแขก; 2) ใช้คำสั่ง /book; 3) ติดต่อฝ่ายบริการลูกค้าผ่านไลน์"
+  },
+  {
+    "id": "faq002",
+    "category": "预订",
+    "question": "预订需要支付多少定金？",
+    "answer": "预订时需支付房费的30%作为定金，尾款在入住前7天支付。旺季(11月-2月)可能需要支付50%定金。",
+    "question_en": "How much deposit is required?",
+    "answer_en": "30% of total payment as deposit, balance due 7 days before check-in. Peak season (Nov-Feb) may require 50% deposit.",
+    "question_th": "ต้องจ่ายมัดจำเท่าไหร่?",
+    "answer_th": "จ่ายมัดจำ 30% ของค่าที่พัก ยอดคงเหลือชำระ 7 วันก่อนเช็คอิน ฤดูกาลท่องเที่ยว (พ.ย.-ก.พ.) อาจต้องมัดจำ 50%"
+  },
+  {
+    "id": "faq003",
+    "category": "预订",
+    "question": "取消预订的政策是什么？",
+    "answer": "取消政策：入住前30天以上免费取消；15-30天收取30%费用；7-15天收取50%费用；7天内不予退款。",
+    "question_en": "What is the cancellation policy?",
+    "answer_en": "Cancellation: Free 30+ days before check-in; 30% fee 15-30 days; 50% fee 7-15 days; No refund within 7 days.",
+    "question_th": "นโยบายยกเลิกเป็นอย่างไร?",
+    "answer_th": "ยกเลิก: ฟรี 30+ วันก่อนเช็คอิน; ค่าธรรมเนียม 30% 15-30 วัน; ค่าธรรมเนียม 50% 7-15 วัน; ไม่คืนเงินภายใน 7 วัน"
+  },
+  {
+    "id": "faq004",
+    "category": "入住",
+    "question": "入住和退房时间是什么时候？",
+    "answer": "标准入住时间为下午2点，退房时间为中午12点。如需提前入住或延迟退房，请提前告知，可能需要额外付费。",
+    "question_en": "What are check-in and check-out times?",
+    "answer_en": "Standard check-in: 2 PM, check-out: 12 PM. Early check-in or late check-out available on request with extra fee.",
+    "question_th": "เวลาเช็คอินและเช็คเอาท์?",
+    "answer_th": "เช็คอินมาตรฐาน: 14.00 น. เช็คเอาท์: 12.00 น. เช็คอินเร็วหรือเช็คเอาท์สายตามคำขอ มีค่าธรรมเนียมเพิ่มเติม"
+  },
+  {
+    "id": "faq005",
+    "category": "入住",
+    "question": "入住时需要准备什么？",
+    "answer": "请携带：1) 护照原件；2) 预订确认邮件；3) 入住押金(可现金或刷卡)；4) 泰国联系电话(建议购买当地SIM卡)。",
+    "question_en": "What should I prepare for check-in?",
+    "answer_en": "Please bring: 1) Original passport; 2) Booking confirmation email; 3) Security deposit (cash or card); 4) Local contact number.",
+    "question_th": "ต้องเตรียมอะไรสำหรับเช็คอิน?",
+    "answer_th": "กรุณานำ: 1) หนังสือเดินทางตัวจริง; 2) อีเมลยืนยันการจอง; 3) เงินมัดจำ (เงินสดหรือบัตร); 4) หมายเลขติดต่อท้องถิ่น"
+  },
+  {
+    "id": "faq006",
+    "category": "费用",
+    "question": "房价包含哪些费用？",
+    "answer": "房价包含：每日早餐(部分别墅不含)、管家服务(部分别墅)、使用所有设施(泳池、厨房等)、WiFi、停车位。不包含：旅游保险、个人消费、电话费。",
+    "question_en": "What's included in the price?",
+    "answer_en": "Included: Daily breakfast (some villas excluded), butler service (some villas), all facilities (pool, kitchen, etc.), WiFi, parking.",
+    "question_th": "ราคารวมอะไรบ้าง?",
+    "answer_th": "รวม: อาหารเช้าทุกวัน (บางวิลล่าไม่รวม), บริการพี่เลี้ยง (บางวิลล่า), สิ่งอำนวยความสะดวกทั้งหมด, WiFi, ที่จอดรถ"
+  },
+  {
+    "id": "faq007",
+    "category": "费用",
+    "question": "需要支付押金吗？",
+    "answer": "是的，入住时需要支付押金。押金金额根据别墅不同，一般为5000-20000泰铢。退房时若无损坏，押金全额退还。",
+    "question_en": "Is a security deposit required?",
+    "answer_en": "Yes, security deposit required at check-in. Amount varies by villa, typically 5,000-20,000 THB. Fully refunded at check-out if no damage.",
+    "question_th": "ต้องจ่ายมัดจำไหม?",
+    "answer_th": "ใช่ ต้องจ่ายเงินมัดจำเวลาเช็คอิน จำนวนตามวิลล่า ปกติ 5,000-20,000 บาท คืนเต็มจำนวนถ้าไม่มีความเสียหาย"
+  },
+  {
+    "id": "faq008",
+    "category": "设施",
+    "question": "别墅有厨房吗？可以自己做饭吗？",
+    "answer": "大部分别墅配备完整厨房，包括炉灶、微波炉、冰箱、锅具和餐具。部分高端别墅配有专业厨房设备。可以在别墅内自己做饭，但需支付额外的厨房清洁费500-1000泰铢。",
+    "question_en": "Does the villa have a kitchen? Can I cook?",
+    "answer_en": "Most villas have fully equipped kitchens with stove, microwave, fridge, cookware. Some luxury villas have professional kitchen. Extra cleaning fee 500-1,000 THB for cooking.",
+    "question_th": "วิลล่ามีครัวไหม? ทำอาหารเองได้ไหม?",
+    "answer_th": "วิลล่าส่วนใหญ่มีครัวพร้อมเตาอบไมโครเวฟตู้เย็น วิลล่าหรูบางแห่งมีครัวมืออาชีพ ค่าทำความสะอาดเพิ่ม 500-1,000 บาท"
+  },
+  {
+    "id": "faq009",
+    "category": "设施",
+    "question": "别墅提供接送服务吗？",
+    "answer": "我们提供付费接送服务：机场接机500-1500泰铢(根据距离)，城市包车800-2000泰铢/天。部分高端别墅提供免费接送服务，请以具体别墅信息为准。",
+    "question_en": "Does the villa offer transfer service?",
+    "answer_en": "Paid transfer available: Airport pickup 500-1,500 THB (based on distance), city charter 800-2,000 THB/day. Some luxury villas offer free transfers.",
+    "question_th": "วิลล่ามีบริการรับส่งไหม?",
+    "answer_th": "บริการรับส่งมีค่าบริการ: รับจากสนามบิน 500-1,500 บาท, เช่ารถส่วนตัว 800-2,000 บาท/วัน วิลล่าหรูบางแห่งบริการฟรี"
+  },
+  {
+    "id": "faq010",
+    "category": "服务",
+    "question": "别墅有中文服务吗？",
+    "answer": "是的，我们的客服团队提供24小时中文服务。部分别墅配备中文管家或中文员工。预订后可联系客服获取专属中文服务。",
+    "question_en": "Is Chinese service available?",
+    "answer_en": "Yes, our customer service provides 24/7 Chinese support. Some villas have Chinese-speaking butlers or staff.",
+    "question_th": "มีบริการภาษาจีนไหม?",
+    "answer_th": "ใช่ ฝ่ายบริการลูกค้าของเราให้บริการภาษาจีน 24 ชม. วิลล่าบางแห่งมีพี่เลี้ยงหรือพนักงานพูดภาษาจีน"
+  },
+  {
+    "id": "faq011",
+    "category": "服务",
+    "question": "可以安排私人厨师吗？",
+    "answer": "可以！部分高端别墅配有私人厨师。其他别墅也可付费安排外部厨师，价格约为1500-3000泰铢/餐(4-6人份)，可提前预约泰式、西式或中式料理。",
+    "question_en": "Can I arrange a private chef?",
+    "answer_en": "Yes! Some luxury villas have private chefs. Others can arrange external chefs for 1,500-3,000 THB/meal (4-6 persons), advance booking for Thai, Western or Chinese cuisine.",
+    "question_th": "จัดพ่อครัวส่วนตัวได้ไหม?",
+    "answer_th": "ได้! วิลล่าหรูบางแห่งมีพ่อครัวส่วนตัว วิลล่าอื่นจัดพ่อครัวภายนอกได้ 1,500-3,000 บาท/มื้อ (4-6 คน) จองล่วงหน้าอาหารไทย ตะวันตก หรือจีน"
+  },
+  {
+    "id": "faq012",
+    "category": "服务",
+    "question": "可以安排SPA按摩服务吗？",
+    "answer": "可以！我们与当地优质SPA馆合作，可安排别墅内SPA服务。价格从800-3000泰铢/小时不等，需提前预约。高端别墅配备私人SPA室。",
+    "question_en": "Can I arrange SPA/massage service?",
+    "answer_en": "Yes! We partner with quality local SPA for in-villa service. Prices from 800-3,000 THB/hour, advance booking required. Luxury villas have private SPA rooms.",
+    "question_th": "จัดบริการสปา/นวดได้ไหม?",
+    "answer_th": "ได้! พาร์ทเนอร์กับสปาท้องถิ่นคุณภาพสำหรับบริการในวิลล่า ราคา 800-3,000 บาท/ชม. จองล่วงหน้า วิลล่าหรูมีห้องสปาส่วนตัว"
+  },
+  {
+    "id": "faq013",
+    "category": "安全",
+    "question": "别墅安全吗？",
+    "answer": "我们的别墅配备完善的安全设施：24小时安保、CCTV监控、门禁系统、保险箱。部分别墅有私人围墙和巡逻保安。贵重物品建议存放于保险箱。",
+    "question_en": "Is the villa safe?",
+    "answer_en": "Our villas have comprehensive security: 24/7 security, CCTV, access control, safes. Some have private walls and patrol guards. Store valuables in safe.",
+    "question_th": "วิลล่าปลอดภัยไหม?",
+    "answer_th": "วิลล่าของเรามีความปลอดภัยครบ: รปภ. 24 ชม., CCTV, ระบบเข้าออก, ตู้นิรภัย บางแห่งมีกำแพงส่วนตัวและยามลาดตระเวน เก็บของมีค่าในตู้นิรภัย"
+  },
+  {
+    "id": "faq014",
+    "category": "特殊需求",
+    "question": "可以携带宠物吗？",
+    "answer": "大多数别墅不允许携带宠物。如需携带宠物，请在预订前与我们确认，我们会为您推荐允许宠物的别墅，并可能收取额外清洁费。",
+    "question_en": "Can I bring pets?",
+    "answer_en": "Most villas don't allow pets. Please confirm before booking, we can recommend pet-friendly villas with possible extra cleaning fee.",
+    "question_th": "พานำสัตว์เลี้ยงมาได้ไหม?",
+    "answer_th": "วิลล่าส่วนใหญ่ไม่อนุญาตสัตว์เลี้ยง ยืนยันก่อนจอง เราจะแนะนำวิลล่าที่อนุญาตสัตว์เลี้ยง อาจมีค่าทำความสะอาดเพิ่ม"
+  },
+  {
+    "id": "faq015",
+    "category": "特殊需求",
+    "question": "可以举办派对或活动吗？",
+    "answer": "部分别墅允许举办小型派对(不超过10人)。举办活动需提前申请，可能需要支付额外押金和清洁费。大型派对或婚礼等需特别审批。请在预订时说明。",
+    "question_en": "Can I host a party or event?",
+    "answer_en": "Some villas allow small parties (under 10 people). Events require advance approval, extra deposit and cleaning fee. Large parties or weddings need special approval.",
+    "question_th": "จัดปาร์ตี้หรืองานได้ไหม?",
+    "answer_en": "วิลล่าบางแห่งอนุญาตปาร์ตี้เล็ก (ไม่เกิน 10 คน) งานต้องขออนุญาตล่วงหน้า อาจมีมัดจำและค่าทำความสะอาดเพิ่ม งานใหญ่ต้องอนุมัติพิเศษ"
+  }
+]
