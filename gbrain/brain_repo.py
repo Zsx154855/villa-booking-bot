@@ -211,7 +211,9 @@ class BrainRepo:
     
     def get_customer(self, user_id: str) -> Optional[BrainEntry]:
         """获取客户信息"""
-        return self._cache.get(f"customer_{user_id}")
+        if hasattr(self, '_cache'):
+            return self._cache.get(f"customer_{user_id}")
+        return None
     
     def save_customer(self, user_id: str, profile_data: Dict) -> BrainEntry:
         """保存客户信息"""
